@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AddToCartForm from "../components/AddToCartForm.astro";
+import ReviewForm from "../components/ReviewForm.astro";
 import { getSettings } from "../lib/emdash";
 import { forwardJson, CART_BASE } from "../lib/relay";
 import { canonicalUrl, jsonLdProduct, jsonLdBreadcrumb } from "../lib/seo";
@@ -94,6 +95,12 @@ const crumbs = [
         )}
         <section id="reviews" class="reviews">
           <h2>{t("pdp.reviews", locale)}</h2>
+          {Astro.url.searchParams.get("review") === "ok" && (
+            <p class="flash">{t("pdp.reviewThanks", locale)}</p>
+          )}
+          {Astro.url.searchParams.get("review") === "error" && (
+            <p class="flash err">{t("error.retry", locale)}</p>
+          )}
           {summary && typeof summary.average === "number" && (
             <p class="summary tabular">★ {summary.average.toFixed(1)} · {summary.count ?? reviews.length}</p>
           )}
@@ -107,6 +114,7 @@ const crumbs = [
               </li>
             ))}
           </ul>
+          <ReviewForm productId={product.id} {locale} returnTo={path} />
         </section>
       </div>
     </div>
@@ -174,5 +182,14 @@ const crumbs = [
   }
   .muted {
     color: var(--muted);
+  }
+  .flash {
+    border-left: 3px solid #3f9d63;
+    padding: 0.4rem 0.8rem;
+    background: rgb(63 157 99 / 0.08);
+  }
+  .flash.err {
+    border-left-color: var(--accent);
+    background: rgb(200 68 42 / 0.08);
   }
 </style>

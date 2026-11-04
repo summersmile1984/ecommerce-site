@@ -1,0 +1,86 @@
+---
+import { t } from "../i18n/ui";
+import type { Locale } from "../config/site";
+
+interface Props {
+  productId: string;
+  locale: Locale;
+  returnTo: string;
+}
+const { productId, locale, returnTo } = Astro.props;
+---
+<form class="review" method="post" action="/api/reviews">
+  <input type="hidden" name="productId" value={productId} />
+  <input type="hidden" name="returnTo" value={returnTo} />
+  <div class="grid">
+    <label>
+      {t("pdp.rating", locale)}
+      <select name="rating" required>
+        {[5, 4, 3, 2, 1].map((n) => (
+          <option value={n}>{"★".repeat(n)}</option>
+        ))}
+      </select>
+    </label>
+    <label>
+      {t("pdp.yourName", locale)}
+      <input name="customerName" required maxlength="80" />
+    </label>
+    <label>
+      {t("pdp.yourEmail", locale)}
+      <input name="customerEmail" type="email" required maxlength="120" />
+    </label>
+  </div>
+  <label>
+    {t("pdp.reviewBody", locale)}
+    <textarea name="body" rows="4" required maxlength="4000"></textarea>
+  </label>
+  <button type="submit">{t("pdp.submitReview", locale)}</button>
+</form>
+<style>
+  .review {
+    display: grid;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-3);
+  }
+  label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    padding: 0.45rem 0.5rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  button {
+    justify-self: start;
+    background: var(--accent);
+    color: var(--paper);
+    border: 0;
+    border-radius: var(--radius);
+    padding: 0.5rem 1.1rem;
+    font-weight: 600;
+  }
+</style>

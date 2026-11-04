@@ -31,6 +31,15 @@ export const POST: APIRoute = async ({ request }) => {
     method: "POST",
     body: JSON.stringify({ ...fields, rating: Number(fields.rating) }),
   });
+  const wantsHtml = (request.headers.get("Accept") ?? "").includes("text/html");
+  if (wantsHtml) {
+    const back = typeof fields.returnTo === "string" && fields.returnTo.startsWith("/") ? fields.returnTo : "/shop";
+    const sep = back.includes("?") ? "&" : "?";
+    return new Response(null, {
+      status: res.ok ? 303 : 303,
+      headers: { Location: `${back}${sep}review=${res.ok ? "ok" : "error"}` },
+    });
+  }
   return new Response(await res.clone().text(), {
     status: res.status,
     headers: { "Content-Type": "application/json" },
