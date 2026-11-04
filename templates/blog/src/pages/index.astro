@@ -1,3 +1,7 @@
-<html>
-  <body>ok</body>
-</html>
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { t } from "../i18n/ui";
+---
+<BaseLayout title={t("nav.home", "en")} description={t("home.latest", "en")} locale="en" path="/">
+  <h1>{t("site.name", "en")}</h1>
+</BaseLayout>

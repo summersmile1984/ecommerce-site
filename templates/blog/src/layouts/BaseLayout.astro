@@ -1,0 +1,78 @@
+---
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/archivo";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import { t } from "../i18n/ui";
+import { site, type Locale } from "../config/site";
+import { localizePath } from "../i18n/routing";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { alternateLinks, canonicalUrl, type Alternate } from "../lib/seo";
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  path: string;
+  alternates?: Alternate[];
+  jsonLd?: Record<string, unknown>[];
+  ogType?: string;
+  translations?: Record<string, string>;
+}
+const {
+  title,
+  description,
+  locale,
+  path,
+  alternates = [],
+  jsonLd = [],
+  ogType = "website",
+  translations,
+} = Astro.props;
+const canonical = canonicalUrl(Astro.site!.toString(), path);
+const fullTitle = `${title} · ${t("site.name", locale)}`;
+// Ensure every configured locale has an alternate; pages with translations
+// pass them explicitly (post pages), the rest fall back to same-path mapping.
+const pairs: Alternate[] = site.locales.map(
+  (l) =>
+    alternates.find((a) => a.locale === l) ?? {
+      locale: l,
+      hreflang: l,
+      href: canonicalUrl(Astro.site!.toString(), localizePath(path, l)),
+    },
+);
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      href={locale === site.defaultLocale ? "/rss.xml" : "/zh/rss.xml"}
+    />
+    <Fragment set:html={alternateLinks(Astro.site!.toString(), path, pairs)} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={locale === "en" ? "en_US" : "zh_CN"} />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      const stored = localStorage.getItem("theme");
+      const sys = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      document.documentElement.dataset.theme = stored ?? sys;
+    </script>
+    {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
+  </head>
+  <body>
+    <Header locale={locale} path={path} {translations} />
+    <main id="main"><slot /></main>
+    <Footer locale={locale} />
+  </body>
+</html>
