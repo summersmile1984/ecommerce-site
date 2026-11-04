@@ -1,0 +1,92 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import { site } from "../config/site";
+
+const locale = site.defaultLocale;
+---
+<BaseLayout title={t("nav.search", locale)} description={t("search.placeholder", locale)} {locale} path={localizePath("/search", locale)}>
+  <div class="wrap" data-search data-locale={locale} data-index={localizePath("/search-index.json", locale)}>
+    <h1>{t("nav.search", locale)}</h1>
+    <input type="search" data-q placeholder={t("search.placeholder", locale)} autofocus />
+    <p class="hint">{t("search.hint", locale)}</p>
+    <ul data-results></ul>
+    <p data-empty hidden>{t("search.empty", locale)}</p>
+  </div>
+</BaseLayout>
+<script>
+  // Client-side filter over the build-time index; scoped to the page locale.
+  const root = document.querySelector("[data-search]") as HTMLElement | null;
+  if (root) {
+    const locale = root.dataset.locale!;
+    const input = root.querySelector("[data-q]") as HTMLInputElement;
+    const list = root.querySelector("[data-results]") as HTMLUListElement;
+    const empty = root.querySelector("[data-empty]") as HTMLElement;
+    type Entry = { title: string; href: string; excerpt: string; locale: string };
+    let index: Entry[] = [];
+    fetch(root.dataset.index!)
+      .then((r) => r.json())
+      .then((d) => (index = d as Entry[]));
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      list.innerHTML = "";
+      const hits = index.filter(
+        (e) => e.locale === locale && (e.title.toLowerCase().includes(q) || e.excerpt.toLowerCase().includes(q)),
+      );
+      empty.hidden = !(q && hits.length === 0);
+      for (const h of hits.slice(0, 20)) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = h.href;
+        a.textContent = h.title;
+        li.append(a);
+        list.append(li);
+      }
+    });
+  }
+</script>
+<style>
+  .wrap {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+  input {
+    width: 100%;
+    font: inherit;
+    font-size: 1.25rem;
+    padding: 0.75rem 1rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  li a {
+    text-decoration: none;
+    border-bottom: 1px solid var(--hairline);
+    display: block;
+    padding: 0.5rem 0;
+  }
+  li a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+</style>
