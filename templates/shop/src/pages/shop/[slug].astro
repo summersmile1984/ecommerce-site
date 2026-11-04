@@ -1,0 +1,14 @@
+---
+import ProductView from "../../views/ProductView.astro";
+import { catalogProducts, translationsOf } from "../../lib/emdash";
+import { notFoundResponse } from "../../lib/not-found";
+
+// SSR: params arrive per request (no getStaticPaths in output:"server")
+const slug = Astro.params.slug ?? "";
+const products = await catalogProducts("en");
+const product = products.find((p) => p.slug === slug);
+if (!product) return notFoundResponse();
+const tlist = await translationsOf(product.id);
+const translations = Object.fromEntries(tlist.map((x) => [x.locale, x.slug]));
+---
+<ProductView {product} locale="en" {translations} />

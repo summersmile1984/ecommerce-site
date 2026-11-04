@@ -1,0 +1,22 @@
+---
+import ProductView from "../../../views/ProductView.astro";
+import { catalogProducts, translationsOf } from "../../../lib/emdash";
+import { notFoundResponse } from "../../../lib/not-found";
+import { site, type Locale } from "../../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+// getStaticPaths declares only `locale`; slug arrives per-request (SSR)
+const { locale: localeParam, slug: slugParam } = Astro.params as { locale?: string; slug?: string };
+const locale = localeParam as Locale;
+const slug = slugParam ?? "";
+const products = await catalogProducts(locale);
+const product = products.find((p) => p.slug === slug);
+if (!product) return notFoundResponse();
+const tlist = await translationsOf(product.id);
+const translations = Object.fromEntries(tlist.map((x) => [x.locale, x.slug]));
+---
+<ProductView {product} {locale} {translations} />

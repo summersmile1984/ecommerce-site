@@ -1,0 +1,107 @@
+---
+import { formatMoney, priceOf, type Product } from "../lib/emdash";
+import type { Locale } from "../config/site";
+import { t } from "../i18n/ui";
+
+interface Props {
+  product: Product;
+  locale: Locale;
+  currency: string;
+  returnTo?: string;
+}
+const { product, locale, currency, returnTo } = Astro.props;
+const price = priceOf(product, currency);
+const qty = product.data.stock_quantity;
+const status = product.data.stock_status ?? "instock";
+const out = status === "outofstock";
+const low = !out && typeof qty === "number" && qty > 0 && qty <= 5;
+const stockLabel = out
+  ? t("pdp.outOfStock", locale)
+  : low
+    ? t("pdp.lowStock", locale).replace("{n}", String(qty))
+    : t("pdp.inStock", locale);
+---
+<form class="buy" method="post" action="/api/cart/items">
+  <input type="hidden" name="productId" value={product.id} />
+  {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
+  <div class="row">
+    <label class="qty">
+      {t("cart.quantity", locale)}
+      <input type="number" name="quantity" value="1" min="1" max={qty ?? 99} />
+    </label>
+    <button type="submit" disabled={out}>{out ? t("pdp.outOfStock", locale) : t("pdp.add", locale)}</button>
+  </div>
+  <p class:list={["stock", out && "out"]}>
+    <span class="dot"></span> {stockLabel}
+  </p>
+  <p class="price tabular">
+    {price ? formatMoney(price.amount, price.currency) : t("pdp.outOfStock", locale)}
+  </p>
+</form>
+<style>
+  .buy {
+    display: grid;
+    gap: var(--space-3);
+    margin: var(--space-4) 0;
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  .row {
+    display: flex;
+    gap: var(--space-3);
+    align-items: end;
+  }
+  .qty {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .qty input {
+    width: 4.5rem;
+    font: inherit;
+    padding: 0.4rem 0.5rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  button {
+    background: var(--accent);
+    color: var(--paper);
+    border: 0;
+    border-radius: var(--radius);
+    padding: 0.55rem 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  button:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+  }
+  .stock {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #3f9d63;
+  }
+  .stock.out .dot {
+    background: var(--muted);
+  }
+  .price {
+    margin: 0;
+    font-size: 1.3rem;
+  }
+</style>

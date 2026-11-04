@@ -1,0 +1,178 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AddToCartForm from "../components/AddToCartForm.astro";
+import { getSettings } from "../lib/emdash";
+import { forwardJson, CART_BASE } from "../lib/relay";
+import { canonicalUrl, jsonLdProduct, jsonLdBreadcrumb } from "../lib/seo";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import type { Product } from "../lib/emdash";
+
+interface Props {
+  product: Product;
+  locale: Locale;
+  translations?: Record<string, string>;
+}
+const { product, locale, translations } = Astro.props;
+const currency = (await getSettings()).defaultCurrency ?? "USD";
+const path = localizePath(`/shop/${product.slug}`, locale);
+const url = canonicalUrl(Astro.site!.toString(), path);
+
+// description: plain string or portable-text array
+const rawDesc = product.data.description;
+const description = Array.isArray(rawDesc)
+  ? rawDesc
+      .map((b: { children?: { text?: string }[] }) => (b?.children ?? []).map((c) => c?.text ?? "").join(" "))
+      .join("\n")
+  : String(rawDesc ?? "");
+
+// reviews list — server-side, public route (non-critical: failures render empty)
+interface ReviewDto {
+  id: string;
+  rating: number;
+  body: string;
+  customerName?: string;
+  createdAt?: string;
+}
+interface ReviewsResponse {
+  reviews?: ReviewDto[];
+  summary?: { count?: number; average?: number } | null;
+}
+let reviews: ReviewDto[] = [];
+let summary: { count?: number; average?: number } | null = null;
+try {
+  const res = await forwardJson(`${CART_BASE}/reviews/list?productId=${encodeURIComponent(product.id)}`, {
+    method: "GET",
+  });
+  const json = (await res.json()) as ReviewsResponse;
+  reviews = json.reviews ?? [];
+  summary = json.summary ?? null;
+} catch {
+  /* reviews are non-critical */
+}
+
+const pairs = [
+  { locale, hreflang: locale, href: url },
+  ...Object.entries(translations ?? {}).map(([l, slug]) => ({
+    locale: l,
+    hreflang: l,
+    href: canonicalUrl(Astro.site!.toString(), localizePath(`/shop/${slug}`, l as Locale)),
+  })),
+];
+const crumbs = [
+  { name: t("shop.title", locale), url: canonicalUrl(Astro.site!.toString(), localizePath("/shop", locale)) },
+  { name: product.data.title, url },
+];
+---
+<BaseLayout
+  title={product.data.title}
+  description={description.slice(0, 160) || t("shop.title", locale)}
+  {locale}
+  {path}
+  alternates={pairs}
+  ogType="product"
+  {translations}
+  jsonLd={[
+    jsonLdProduct({ product, url, currency }),
+    jsonLdBreadcrumb(crumbs),
+  ]}
+>
+  <div class="wrap">
+    <nav class="crumb">
+      <a href={localizePath("/shop", locale)}>← {t("shop.title", locale)}</a>
+    </nav>
+    <div class="cols">
+      <div class="art" data-kind={product.data.type ?? "simple"} aria-hidden="true"></div>
+      <div class="info">
+        <h1>{product.data.title}</h1>
+        <AddToCartForm {product} {locale} {currency} returnTo={path} />
+        {description && (
+          <section class="desc">
+            <p>{description}</p>
+          </section>
+        )}
+        <section id="reviews" class="reviews">
+          <h2>{t("pdp.reviews", locale)}</h2>
+          {summary && typeof summary.average === "number" && (
+            <p class="summary tabular">★ {summary.average.toFixed(1)} · {summary.count ?? reviews.length}</p>
+          )}
+          {reviews.length === 0 && <p class="muted">{t("pdp.noReviews", locale)}</p>}
+          <ul>
+            {reviews.map((r) => (
+              <li>
+                <strong>{"★".repeat(Math.max(1, Math.min(5, r.rating)))}</strong>{" "}
+                {r.customerName && <span class="muted">{r.customerName}</span>}
+                <p>{r.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  .crumb a {
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-5);
+    margin-top: var(--space-4);
+  }
+  @media (max-width: 52rem) {
+    .cols {
+      grid-template-columns: 1fr;
+    }
+  }
+  .art {
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: repeating-linear-gradient(135deg, #efe9e0 0 14px, #e7e0d5 14px 24px);
+  }
+  .art[data-kind="digital"] {
+    background: repeating-linear-gradient(45deg, #e9eef4 0 14px, #dfe7f0 14px 28px);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0;
+  }
+  .desc p {
+    color: var(--muted);
+    max-width: var(--measure);
+    white-space: pre-line;
+  }
+  .reviews {
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--hairline);
+    padding-top: var(--space-4);
+  }
+  .reviews ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .reviews li {
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: var(--space-2);
+  }
+  .summary {
+    color: var(--muted);
+  }
+  .muted {
+    color: var(--muted);
+  }
+</style>

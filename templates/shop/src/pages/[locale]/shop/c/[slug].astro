@@ -2,6 +2,7 @@
 import ShopView from "../../../../views/ShopView.astro";
 import { catalogProducts, listTerms, getSettings } from "../../../../lib/emdash";
 import { parseFacets, applyFacets } from "../../../../lib/facets";
+import { notFoundResponse } from "../../../../lib/not-found";
 import { localizePath } from "../../../../i18n/routing";
 import { t } from "../../../../i18n/ui";
 import { site, type Locale } from "../../../../config/site";
@@ -17,7 +18,7 @@ const locale = localeParam as Locale;
 const slug = slugParam ?? "";
 const categories = await listTerms("product_category");
 const term = categories.find((x) => x.slug === slug);
-if (!term) return Astro.rewrite("/404");
+if (!term) return notFoundResponse();
 
 const facets = parseFacets(Astro.url.searchParams);
 const all = await catalogProducts(locale);
