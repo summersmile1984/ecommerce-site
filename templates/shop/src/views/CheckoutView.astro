@@ -1,0 +1,109 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatMoney } from "../lib/emdash";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import type { Cart } from "../lib/cart-types";
+
+interface Props {
+  locale: Locale;
+  cart: Cart;
+  mode: string;
+  error?: "notconfigured" | "generic";
+}
+const { locale, cart, mode, error } = Astro.props;
+---
+<BaseLayout title={t("checkout.title", locale)} description={t("checkout.title", locale)} {locale} path={localizePath("/checkout", locale)} noindex>
+  <div class="wrap">
+    <h1>{t("checkout.title", locale)}</h1>
+    {error === "notconfigured" && <p class="banner" role="alert">{t("checkout.notConfigured", locale)}</p>}
+    {error === "generic" && <p class="banner" role="alert">{t("error.retry", locale)}</p>}
+    {mode === "embedded" && (
+      <p class="note">Embedded checkout is not supported by this template — set checkout mode to “hosted”.</p>
+    )}
+    <div class="grid">
+      <section>
+        <h2>{t("cart.title", locale)}</h2>
+        <table>
+          <tbody>
+            {cart.items.map((i) => (
+              <tr>
+                <td>{i.title} × {i.quantity}</td>
+                <td class="num tabular">{formatMoney(i.lineSubtotal.amount, i.lineSubtotal.currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td><strong>{t("cart.subtotal", locale)}</strong></td>
+              <td class="num tabular"><strong>{formatMoney(cart.total.amount, cart.total.currency)}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <p class="muted">{t("checkout.contact", locale)}: Stripe collects contact & address on the hosted page.</p>
+      </section>
+      <aside>
+        <form method="post" action="/api/checkout/session">
+          <button type="submit" disabled={mode === "embedded" || cart.items.length === 0}>
+            {t("checkout.continue", locale)} →
+          </button>
+        </form>
+        <p class="muted"><a href={localizePath("/cart", locale)}>← {t("cart.title", locale)}</a></p>
+      </aside>
+    </div>
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+  .banner {
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 1rem;
+    background: rgb(200 68 42 / 0.08);
+  }
+  .note {
+    color: var(--muted);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  td {
+    padding: 0.5rem 0.3rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .num {
+    text-align: right;
+  }
+  button {
+    background: var(--accent);
+    color: var(--paper);
+    border: 0;
+    border-radius: var(--radius);
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    width: 100%;
+  }
+  button:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+  }
+  .muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>

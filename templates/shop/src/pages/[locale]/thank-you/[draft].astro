@@ -1,0 +1,92 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { t } from "../../../i18n/ui";
+import { localizePath } from "../../../i18n/routing";
+import { site, type Locale } from "../../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = (Astro.params.locale ?? "zh") as Locale;
+// getStaticPaths declares only `locale`; draft arrives per-request (SSR)
+const { draft: draftParam } = Astro.params as { locale?: string; draft?: string };
+const draft = draftParam ?? "";
+if (!draft) return new Response("Not found", { status: 404 });
+const path = localizePath(`/thank-you/${draft}`, locale);
+---
+<BaseLayout title={t("thanks.title", locale)} description={t("thanks.title", locale)} {locale} {path} noindex>
+  <div class="wrap" data-thanks data-draft={draft}>
+    <h1>{t("thanks.title", locale)}</h1>
+    <p class="status" data-status>{t("thanks.pending", locale)}</p>
+    <div data-order hidden></div>
+    <p class="muted" data-failed hidden>
+      {t("thanks.failed", locale)} <a href={localizePath("/orders/lookup", locale)}>{t("thanks.lookup", locale)}</a>
+    </p>
+  </div>
+</BaseLayout>
+<script>
+  const root = document.querySelector("[data-thanks]") as HTMLElement | null;
+  if (root) {
+    const draft = root.dataset.draft!;
+    const status = root.querySelector("[data-status]") as HTMLElement;
+    const orderBox = root.querySelector("[data-order]") as HTMLElement;
+    const failed = root.querySelector("[data-failed]") as HTMLElement;
+    let attempts = 0;
+    const tick = async () => {
+      attempts++;
+      try {
+        const res = await fetch(`/api/orders/draft?id=${encodeURIComponent(draft)}`);
+        const json = (await res.json()) as {
+          status?: string;
+          order?: { id?: string; total?: { currency: string; amount: number } };
+        };
+        if (json.status === "ready" && json.order) {
+          status.hidden = true;
+          orderBox.hidden = false;
+          const amount = json.order.total
+            ? `${json.order.total.currency} ${(json.order.total.amount / 100).toFixed(2)}`
+            : "";
+          orderBox.textContent = `${json.order.id ?? ""} ${amount}`;
+          return;
+        }
+        if (json.status === "failed") {
+          status.hidden = true;
+          failed.hidden = false;
+          return;
+        }
+      } catch {
+        /* transient */
+      }
+      if (attempts < 20) setTimeout(tick, 800);
+      else {
+        status.hidden = true;
+        failed.hidden = false;
+      }
+    };
+    tick();
+  }
+</script>
+<style>
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-3);
+    text-align: center;
+  }
+  h1 {
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    margin: 0 0 var(--space-3);
+  }
+  .status {
+    color: var(--muted);
+  }
+  [data-order] {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+  }
+  .muted {
+    color: var(--muted);
+  }
+</style>

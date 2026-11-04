@@ -16,6 +16,13 @@ export const POST: APIRoute = async ({ request }) => {
   if (parsed.ok) {
     return new Response(null, { status: 303, headers: { Location: parsed.url } });
   }
+  // Browser form posts (Accept: text/html) get a redirect back to checkout
+  // with a flag; API clients (Accept: */* etc.) keep the JSON error contract.
+  const wantsHtml = (request.headers.get("Accept") ?? "").includes("text/html");
+  if (wantsHtml) {
+    const flag = parsed.error.includes("not configured") ? "notconfigured" : "generic";
+    return new Response(null, { status: 303, headers: { Location: `/checkout?error=${flag}` } });
+  }
   return new Response(JSON.stringify({ error: parsed.error, status: parsed.status }), {
     status: parsed.status,
     headers: { "Content-Type": "application/json" },

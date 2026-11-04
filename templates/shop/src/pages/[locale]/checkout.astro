@@ -1,0 +1,41 @@
+---
+import CheckoutView from "../../views/CheckoutView.astro";
+import { forwardJson, relayCookie, CART_BASE } from "../../lib/relay";
+import type { Cart } from "../../lib/cart-types";
+import { site, type Locale } from "../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = (Astro.params.locale ?? "zh") as Locale;
+
+if (Astro.request.method === "POST") {
+  const res = await forwardJson(
+    `${CART_BASE}/checkout/create-session`,
+    { method: "POST", body: await Astro.request.text() },
+    relayCookie(Astro.request),
+  );
+  if (res.ok) {
+    const json = (await res.json()) as { url?: string };
+    if (json.url) return new Response(null, { status: 303, headers: { Location: json.url } });
+  }
+  const text = await res.text();
+  const flag = text.includes("not configured") ? "notconfigured" : "generic";
+  return new Response(null, { status: 303, headers: { Location: `/${locale}/checkout?error=${flag}` } });
+}
+
+const cookie = relayCookie(Astro.request);
+const cartRes = await forwardJson(`${CART_BASE}/cart`, { method: "GET" }, cookie);
+const cartJson = (await cartRes.json()) as { cart?: Cart };
+const cart = cartJson.cart;
+if (!cart || cart.items.length === 0) {
+  return new Response(null, { status: 303, headers: { Location: `/${locale}/cart` } });
+}
+const modeRes = await forwardJson(`${CART_BASE}/checkout/mode`, { method: "GET" }, cookie);
+const modeJson = (await modeRes.json()) as { mode?: string };
+const errParam = Astro.url.searchParams.get("error");
+const error = errParam === "notconfigured" ? "notconfigured" : errParam ? "generic" : undefined;
+---
+<CheckoutView {locale} {cart} mode={modeJson.mode ?? "hosted"} {error} />
