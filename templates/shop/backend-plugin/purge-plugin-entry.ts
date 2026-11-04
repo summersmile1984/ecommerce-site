@@ -45,7 +45,13 @@ async function pushPurge(collection: string, id: string | undefined, ctx: Plugin
 		// available; on Cloudflare the frontend has a public origin anyway.
 		const res = await fetch(purgeUrl, {
 			method: "POST",
-			headers: { "Content-Type": "application/json", "x-purge-secret": secret },
+			headers: {
+				"Content-Type": "application/json",
+				"x-purge-secret": secret,
+				// Astro's checkOrigin accepts a same-origin Origin; server-side
+				// fetch sends none, and text/plain bodies are CSRF-checked.
+				Origin: new URL(purgeUrl).origin,
+			},
 			body: JSON.stringify({ tags }),
 		});
 		if (!res.ok) ctx.log.warn("frontend purge failed", { status: res.status, tags });

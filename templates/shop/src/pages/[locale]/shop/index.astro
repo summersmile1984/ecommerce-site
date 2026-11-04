@@ -4,6 +4,8 @@ import { catalogProducts, listTerms, getSettings } from "../../../lib/emdash";
 import { parseFacets, applyFacets, shopNoindex } from "../../../lib/facets";
 import { localizePath } from "../../../i18n/routing";
 import { site, type Locale } from "../../../config/site";
+import { isLocale } from "../../../config/site";
+import { notFoundResponse } from "../../../lib/not-found";
 
 export async function getStaticPaths() {
   return site.locales
@@ -11,6 +13,7 @@ export async function getStaticPaths() {
     .map((locale) => ({ params: { locale } }));
 }
 const locale = Astro.params.locale as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 const facets = parseFacets(Astro.url.searchParams);
 const products = await catalogProducts(locale);
 const { items, total, pageCount } = applyFacets(products, facets, site.pageSize);

@@ -2,6 +2,8 @@
 import HomeView from "../../views/HomeView.astro";
 import { catalogProducts, listTerms, getSettings } from "../../lib/emdash";
 import { site, type Locale } from "../../config/site";
+import { isLocale } from "../../config/site";
+import { notFoundResponse } from "../../lib/not-found";
 
 export async function getStaticPaths() {
   return site.locales
@@ -9,6 +11,7 @@ export async function getStaticPaths() {
     .map((locale) => ({ params: { locale } }));
 }
 const locale = Astro.params.locale as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 const products = await catalogProducts(locale);
 const categories = await listTerms("product_category");
 const currency = (await getSettings()).defaultCurrency ?? "USD";

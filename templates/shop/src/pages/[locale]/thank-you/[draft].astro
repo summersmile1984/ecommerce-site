@@ -3,6 +3,8 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { t } from "../../../i18n/ui";
 import { localizePath } from "../../../i18n/routing";
 import { site, type Locale } from "../../../config/site";
+import { isLocale } from "../../../config/site";
+import { notFoundResponse } from "../../../lib/not-found";
 
 export async function getStaticPaths() {
   return site.locales
@@ -10,6 +12,7 @@ export async function getStaticPaths() {
     .map((locale) => ({ params: { locale } }));
 }
 const locale = (Astro.params.locale ?? "zh") as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 // getStaticPaths declares only `locale`; draft arrives per-request (SSR)
 const { draft: draftParam } = Astro.params as { locale?: string; draft?: string };
 const draft = draftParam ?? "";

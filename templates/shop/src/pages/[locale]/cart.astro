@@ -3,6 +3,8 @@ import CartView from "../../views/CartView.astro";
 import { forwardJson, relayCookie, CART_BASE } from "../../lib/relay";
 import { site, type Locale } from "../../config/site";
 import type { Cart } from "../../lib/cart-types";
+import { isLocale } from "../../config/site";
+import { notFoundResponse } from "../../lib/not-found";
 
 export async function getStaticPaths() {
   return site.locales
@@ -10,6 +12,7 @@ export async function getStaticPaths() {
     .map((locale) => ({ params: { locale } }));
 }
 const locale = (Astro.params.locale ?? "zh") as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 
 const cookie = relayCookie(Astro.request);
 const cartRes = await forwardJson(`${CART_BASE}/cart`, { method: "GET" }, cookie);

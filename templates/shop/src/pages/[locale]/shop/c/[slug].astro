@@ -6,6 +6,7 @@ import { notFoundResponse } from "../../../../lib/not-found";
 import { localizePath } from "../../../../i18n/routing";
 import { t } from "../../../../i18n/ui";
 import { site, type Locale } from "../../../../config/site";
+import { isLocale } from "../../../../config/site";
 
 export async function getStaticPaths() {
   return site.locales
@@ -15,6 +16,7 @@ export async function getStaticPaths() {
 // getStaticPaths only declares `locale`; slug arrives per-request (SSR).
 const { locale: localeParam, slug: slugParam } = Astro.params as { locale?: string; slug?: string };
 const locale = localeParam as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 const slug = slugParam ?? "";
 const categories = await listTerms("product_category");
 const term = categories.find((x) => x.slug === slug);

@@ -109,7 +109,7 @@ if (existsSync(wrPath)) {
   if (!wr.includes("PURGE_URL")) {
     wr = wr.replace(
       '"vars": {',
-      '"vars": {\n    "PURGE_URL": "http://localhost:4322/__purge",\n    "PURGE_SECRET": "replace-me",',
+      '"vars": {\n    "PURGE_URL": "http://localhost:4322/api/purge",\n    "PURGE_SECRET": "replace-me",',
     );
   }
   if (wr !== wrOriginal) {

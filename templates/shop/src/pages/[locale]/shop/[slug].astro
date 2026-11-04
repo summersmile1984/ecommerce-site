@@ -3,6 +3,7 @@ import ProductView from "../../../views/ProductView.astro";
 import { catalogProducts, translationsOf } from "../../../lib/emdash";
 import { notFoundResponse } from "../../../lib/not-found";
 import { site, type Locale } from "../../../config/site";
+import { isLocale } from "../../../config/site";
 
 export async function getStaticPaths() {
   return site.locales
@@ -12,6 +13,7 @@ export async function getStaticPaths() {
 // getStaticPaths declares only `locale`; slug arrives per-request (SSR)
 const { locale: localeParam, slug: slugParam } = Astro.params as { locale?: string; slug?: string };
 const locale = localeParam as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 const slug = slugParam ?? "";
 const products = await catalogProducts(locale);
 const product = products.find((p) => p.slug === slug);

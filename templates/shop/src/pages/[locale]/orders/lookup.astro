@@ -2,6 +2,8 @@
 import OrdersLookupView from "../../../views/OrdersLookupView.astro";
 import { forwardJson, lookupPath } from "../../../lib/relay";
 import { site, type Locale } from "../../../config/site";
+import { isLocale } from "../../../config/site";
+import { notFoundResponse } from "../../../lib/not-found";
 
 export async function getStaticPaths() {
   return site.locales
@@ -9,6 +11,7 @@ export async function getStaticPaths() {
     .map((locale) => ({ params: { locale } }));
 }
 const locale = (Astro.params.locale ?? "zh") as Locale;
+if (!isLocale(locale)) return notFoundResponse();
 
 interface OrderSummary {
   id: string;
