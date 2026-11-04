@@ -31,7 +31,8 @@ const {
   translations,
 } = Astro.props;
 const canonical = canonicalUrl(Astro.site!.toString(), path);
-const fullTitle = `${title} · ${t("site.name", locale)}`;
+const siteName = t("site.name", locale);
+const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
 // Ensure every configured locale has an alternate; pages with translations
 // pass them explicitly (post pages), the rest fall back to same-path mapping.
 const pairs: Alternate[] = site.locales.map(

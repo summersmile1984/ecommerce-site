@@ -57,8 +57,12 @@ if (!config.includes("fonts: false")) {
     "storage,\n\t\t\t// offline build: skip Google Fonts provider\n\t\t\tfonts: false,",
   );
 }
-writeFileSync(configPath, config);
-log("astro.config.mjs patched (i18n en/zh, fonts:false)");
+if (config !== readFileSync(configPath, "utf8")) {
+  writeFileSync(configPath, config);
+  log("astro.config.mjs patched (i18n en/zh, fonts:false)");
+} else {
+  log("astro.config.mjs already configured — left untouched (avoid dev-server bounce)");
+}
 
 // --- 3. install + init + seed ------------------------------------------
 const run = (cmd, opts = {}) =>
@@ -139,19 +143,21 @@ const api = (path, init = {}) =>
 
 // --- 6. bilingual sample content ----------------------------------------
 const list = await (await api("/_emdash/api/content/posts?limit=50&status=published")).json();
-const posts = list.data.items;
-if (posts.length < 6) throw new Error(`expected ≥6 seeded posts, got ${posts.length}`);
+const posts = list.data.items.filter((p) => p.locale === "en"); // list mixes locales; work from en originals
+if (posts.length < 6) throw new Error(`expected ≥6 seeded en posts, got ${posts.length}`);
 // leave the LAST post untranslated = fallback demo (spec §7.4)
 const toTranslate = posts.slice(0, 5);
+const zhExcerpt = "中文摘要：与英文原帖同一内容的多语言版本演示。";
 let created = 0;
+let repaired = 0;
 let published = 0;
 for (const p of toTranslate) {
   const tr = await api(`/_emdash/api/content/posts/${p.id}/translations`);
   const existing = tr.ok ? ((await tr.json()).data?.translations ?? []) : [];
   const zhExisting = existing.find((x) => x.locale === "zh");
-  if (zhExisting?.status === "published") continue;
-
   let zhId = zhExisting?.id;
+  let needsPublish = false;
+
   if (!zhExisting) {
     const zhTitle = `${p.data.title}（中文）`;
     const res = await api("/_emdash/api/content/posts", {
@@ -162,7 +168,7 @@ for (const p of toTranslate) {
         slug: `${p.slug}-zh`,
         data: {
           title: zhTitle,
-          excerpt: p.data.excerpt,
+          excerpt: zhExcerpt,
           body: blocks(zhTitle, "这是对应英文文章的中文翻译，用于演示同一条内容的多语言版本。"),
         },
       }),
@@ -173,9 +179,28 @@ for (const p of toTranslate) {
     }
     zhId = (await res.json())?.data?.item?.id;
     created++;
+    needsPublish = true; // EmDash creates drafts
+  } else if (zhExisting.status !== "published") {
+    needsPublish = true; // leftover draft from an earlier run
+  } else {
+    // published zh entry: promote any pending draft first (a repair PUT may
+    // have landed without its publish), else repair a copied en excerpt.
+    // (translations endpoint is slim — fetch the full zh entry)
+    const zhFull = await (await api(`/_emdash/api/content/posts/${zhId}`)).json();
+    const item = zhFull?.data?.item;
+    if (item?.draftRevisionId) {
+      needsPublish = true;
+    } else if (item?.data?.excerpt && item.data.excerpt === p.data.excerpt) {
+      await api(`/_emdash/api/content/posts/${zhId}`, {
+        method: "PUT",
+        body: JSON.stringify({ data: { title: item.data.title, excerpt: zhExcerpt } }),
+      });
+      repaired++;
+      needsPublish = true;
+    }
   }
-  // EmDash creates content as drafts; publish so `status=published` lists see it.
-  if (zhId) {
+
+  if (zhId && needsPublish) {
     const pub = await api(`/_emdash/api/content/posts/${zhId}/publish`, {
       method: "POST",
       body: "{}",
@@ -185,7 +210,7 @@ for (const p of toTranslate) {
   }
 }
 const enOnlySlug = posts[posts.length - 1].slug;
-log(`zh translations: ${created} created, ${published} published; fallback demo post: ${enOnlySlug}`);
+log(`zh translations: ${created} created, ${repaired} repaired, ${published} published; fallback demo post: ${enOnlySlug}`);
 
 // demo tag: the starter seed ships no tag terms; create one so /blog/tag has a route to prove
 const tagTerms = await (await api("/_emdash/api/taxonomies/tag/terms")).json();
