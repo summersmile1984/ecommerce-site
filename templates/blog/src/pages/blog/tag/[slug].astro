@@ -1,0 +1,13 @@
+---
+import TaxonomyView from "../../../views/TaxonomyView.astro";
+import { catalog, listTerms } from "../../../lib/emdash";
+
+export async function getStaticPaths() {
+  const terms = await listTerms("tag");
+  return terms.map((term) => ({ params: { slug: term.slug }, props: { term } }));
+}
+const { slug } = Astro.params;
+const { term } = Astro.props;
+const posts = (await catalog("en")).filter((p) => (p.terms?.tag ?? []).some((c) => c.slug === slug));
+---
+<TaxonomyView locale="en" {term} {posts} kind="tag" />

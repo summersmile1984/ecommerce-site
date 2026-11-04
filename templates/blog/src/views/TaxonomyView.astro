@@ -1,0 +1,22 @@
+---
+import BlogListView from "./BlogListView.astro";
+import type { Locale } from "../config/site";
+import type { Post, TaxTerm } from "../lib/emdash";
+
+interface Props {
+  locale: Locale;
+  term: TaxTerm;
+  posts: Post[];
+  kind: "category" | "tag";
+}
+const { locale, term, posts, kind } = Astro.props;
+const basePath = `/blog/${kind}/${term.slug}`;
+---
+<BlogListView
+  {locale}
+  {posts}
+  page={1}
+  pageCount={1}
+  {basePath}
+  title={`${kind === "category" ? "Category" : "Tag"} · ${term.label}`}
+/>

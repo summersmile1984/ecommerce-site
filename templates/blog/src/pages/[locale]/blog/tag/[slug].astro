@@ -1,0 +1,18 @@
+---
+import TaxonomyView from "../../../../views/TaxonomyView.astro";
+import { catalog, listTerms } from "../../../../lib/emdash";
+import { site, type Locale } from "../../../../config/site";
+
+export async function getStaticPaths() {
+  const terms = await listTerms("tag");
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .flatMap((locale) => terms.map((term) => ({ params: { locale, slug: term.slug }, props: { locale, term } })));
+}
+const { slug } = Astro.params;
+const { locale, term } = Astro.props;
+const posts = (await catalog(locale as Locale)).filter((p) =>
+  (p.terms?.tag ?? []).some((c) => c.slug === slug),
+);
+---
+<TaxonomyView locale={locale as Locale} {term} {posts} kind="tag" />

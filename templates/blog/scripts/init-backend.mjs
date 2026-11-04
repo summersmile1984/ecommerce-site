@@ -187,6 +187,29 @@ for (const p of toTranslate) {
 const enOnlySlug = posts[posts.length - 1].slug;
 log(`zh translations: ${created} created, ${published} published; fallback demo post: ${enOnlySlug}`);
 
+// demo tag: the starter seed ships no tag terms; create one so /blog/tag has a route to prove
+const tagTerms = await (await api("/_emdash/api/taxonomies/tag/terms")).json();
+let journalId = (tagTerms.data?.terms ?? []).find((t) => t.slug === "journal")?.id;
+if (!journalId) {
+  const made = await api("/_emdash/api/taxonomies/tag/terms", {
+    method: "POST",
+    body: JSON.stringify({ slug: "journal", label: "Journal" }),
+  });
+  if (made.ok) {
+    const body = await made.json();
+    journalId = body?.data?.term?.id ?? body?.data?.id;
+  }
+}
+if (journalId) {
+  for (const p of posts.slice(0, 2)) {
+    await api(`/_emdash/api/content/posts/${p.id}/terms/tag`, {
+      method: "POST",
+      body: JSON.stringify({ termIds: [journalId] }),
+    });
+  }
+  log("tag 'journal' ensured on first two posts");
+}
+
 // --- 7. self-check + output ---------------------------------------------
 const zhList = await (await api("/_emdash/api/content/posts?limit=50&status=published&locale=zh")).json();
 const zhCount = zhList.data.items.length;

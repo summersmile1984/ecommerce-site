@@ -82,19 +82,55 @@ export function pickLocalized(entries: Post[], locale: Locale): Post[] {
   return out;
 }
 
-/** Per-process memo so N pages don't re-fetch the same two lists during build. */
+/** Per-process memo so N pages don't re-fetch the same lists during build. */
 const catalogCache = new Map<string, Post[]>();
 
+const TAXONOMIES = ["post_category", "tag"] as const;
+const termsMemo = new Map<string, TaxTerm[]>(); // `${postId}:${taxonomy}`
+
+/** Terms are NOT embedded in list/single responses — fetch per entry (T9 ruling). */
+async function termsOf(postId: string, taxonomy: string): Promise<TaxTerm[]> {
+  const key = `${postId}:${taxonomy}`;
+  const hit = termsMemo.get(key);
+  if (hit) return hit;
+  const res = await api<{ data?: { terms?: TaxTerm[] } }>(
+    `/_emdash/api/content/posts/${postId}/terms/${taxonomy}`,
+  );
+  const terms = res.data?.terms ?? [];
+  termsMemo.set(key, terms);
+  return terms;
+}
+
+async function termsRecord(postId: string): Promise<Record<string, TaxTerm[]>> {
+  const out: Record<string, TaxTerm[]> = {};
+  for (const tax of TAXONOMIES) out[tax] = await termsOf(postId, tax);
+  return out;
+}
+
 /**
- * The full catalog for a locale: fetch BOTH locale lists and collapse
- * translation groups — untranslated entries fall back to the default locale
- * in the template, independent of backend fallback config (T4 ruling).
+ * The full catalog for a locale: fetch BOTH locale lists, collapse
+ * translation groups (untranslated entries fall back to the default locale
+ * — T4 ruling), then attach taxonomy terms. zh translations carry no term
+ * assignments (emdash does not propagate them), so a post with empty terms
+ * borrows its default-locale sibling's terms (T9 ruling).
  */
 export async function catalog(locale: Locale): Promise<Post[]> {
   const cached = catalogCache.get(locale);
   if (cached) return cached;
   const [en, zh] = await Promise.all([listPosts("en"), listPosts("zh")]);
   const merged = pickLocalized([...en, ...zh], locale);
-  catalogCache.set(locale, merged);
-  return merged;
+  const enByGroup = new Map(en.map((p) => [p.translationGroup ?? p.id, p]));
+  const enriched = await Promise.all(
+    merged.map(async (post) => {
+      const terms = await termsRecord(post.id);
+      const empty = TAXONOMIES.every((t) => (terms[t] ?? []).length === 0);
+      if (empty) {
+        const sibling = enByGroup.get(post.translationGroup ?? post.id);
+        if (sibling && sibling.id !== post.id) return { ...post, terms: await termsRecord(sibling.id) };
+      }
+      return { ...post, terms };
+    }),
+  );
+  catalogCache.set(locale, enriched);
+  return enriched;
 }
