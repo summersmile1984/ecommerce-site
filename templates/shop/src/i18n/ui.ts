@@ -58,6 +58,8 @@ const en = {
   "lang.switch": "中文",
   "tax.category": "Category",
   "tax.all": "All types",
+  "pager.prev": "Prev",
+  "pager.next": "Next",
   "error.retry": "Something went wrong. Retry.",
 } as const;
 
@@ -121,6 +123,8 @@ const zh: Record<MessageKey, string> = {
   "lang.switch": "English",
   "tax.category": "分类",
   "tax.all": "全部类型",
+  "pager.prev": "上一页",
+  "pager.next": "下一页",
   "error.retry": "出错了，请重试。",
 };
 

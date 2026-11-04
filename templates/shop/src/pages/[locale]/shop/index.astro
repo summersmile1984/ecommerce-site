@@ -1,0 +1,31 @@
+---
+import ShopView from "../../../views/ShopView.astro";
+import { catalogProducts, listTerms, getSettings } from "../../../lib/emdash";
+import { parseFacets, applyFacets, shopNoindex } from "../../../lib/facets";
+import { localizePath } from "../../../i18n/routing";
+import { site, type Locale } from "../../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = Astro.params.locale as Locale;
+const facets = parseFacets(Astro.url.searchParams);
+const products = await catalogProducts(locale);
+const { items, total, pageCount } = applyFacets(products, facets, site.pageSize);
+const categories = await listTerms("product_category");
+const currency = (await getSettings()).defaultCurrency ?? "USD";
+---
+<ShopView
+  {locale}
+  {items}
+  {total}
+  {pageCount}
+  {facets}
+  {categories}
+  {currency}
+  canonical={localizePath("/shop", locale)}
+  noindex={shopNoindex(facets)}
+  basePath="/shop"
+/>

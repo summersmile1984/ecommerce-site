@@ -1,0 +1,124 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import CategoryNav from "../components/CategoryNav.astro";
+import SortSelect from "../components/SortSelect.astro";
+import { t } from "../i18n/ui";
+import type { Locale } from "../config/site";
+import type { Product, TaxTerm } from "../lib/emdash";
+import type { Facets } from "../lib/facets";
+
+interface Props {
+  locale: Locale;
+  items: Product[];
+  total: number;
+  pageCount: number;
+  facets: Facets;
+  categories: TaxTerm[];
+  currency: string;
+  canonical: string;
+  noindex: boolean;
+  basePath: string;
+  activeCategory?: string;
+  title?: string;
+}
+const {
+  locale,
+  items,
+  total,
+  pageCount,
+  facets,
+  categories,
+  currency,
+  canonical,
+  noindex,
+  basePath,
+  activeCategory,
+  title = t("shop.title", locale),
+} = Astro.props;
+
+const hrefFor = (n: number): string => {
+  const qs = new URLSearchParams();
+  if (facets.q) qs.set("q", facets.q);
+  if (facets.sort !== "new") qs.set("sort", facets.sort);
+  if (n > 1) qs.set("page", String(n));
+  const query = qs.toString();
+  const base = activeCategory ? `${basePath}` : basePath;
+  return query ? `${base}?${query}` : base;
+};
+---
+<BaseLayout {title} description={t("shop.title", locale)} {locale} path={canonical} {noindex}>
+  <div class="wrap">
+    <div class="head">
+      <h1>{title}</h1>
+      <SortSelect {locale} {facets} {basePath} />
+    </div>
+    <CategoryNav {locale} terms={categories} active={activeCategory} />
+    <p class="count tabular">
+      {total} {t("shop.results", locale)}
+      {facets.q && <> · “{facets.q}”</>}
+    </p>
+    {items.length === 0 && <p class="empty">{t("shop.empty", locale)}</p>}
+    <div class="grid">
+      {items.map((p) => <ProductCard product={p} {locale} {currency} />)}
+    </div>
+    {
+      pageCount > 1 && (
+        <nav class="pager" aria-label="Pagination">
+          {facets.page > 1 && <a href={hrefFor(facets.page - 1)}>← {t("pager.prev", locale)}</a>}
+          <span>
+            {facets.page} / {pageCount}
+          </span>
+          {facets.page < pageCount && <a href={hrefFor(facets.page + 1)}>{t("pager.next", locale)} →</a>}
+        </nav>
+      )
+    }
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  h1 {
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    margin: 0 0 var(--space-3);
+  }
+  .count {
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 var(--space-4);
+  }
+  .empty {
+    color: var(--muted);
+    padding: var(--space-5) 0;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+  }
+  .pager {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-5) 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .pager span {
+    color: var(--muted);
+  }
+</style>

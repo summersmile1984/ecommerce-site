@@ -1,0 +1,93 @@
+---
+import { priceOf, type Product } from "../lib/emdash";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import Price from "./Price.astro";
+
+interface Props {
+  product: Product;
+  locale: Locale;
+  currency: string;
+}
+const { product, locale, currency } = Astro.props;
+const href = localizePath(`/shop/${product.slug}`, locale);
+const price = priceOf(product, currency);
+const out = product.data.stock_status === "outofstock";
+const zh = product.locale !== locale; // untranslated product served via fallback
+// Honest placeholder: demo catalog ships without images — type-derived panel, never fake photos.
+const kind = product.data.type ?? "simple";
+---
+<article class="card">
+  <a class="art" href={href} data-kind={kind} aria-hidden="true" tabindex="-1"></a>
+  <div class="info">
+    <h3><a href={href}>{product.data.title}</a></h3>
+    <p class="meta">
+      <Price minor={price?.amount ?? null} currency={price?.currency ?? currency} />
+      <span class:list={["dot", out && "out"]}></span>
+      <span class="kind">{kind}</span>
+      {zh && <span class="fallback">EN</span>}
+    </p>
+  </div>
+</article>
+<style>
+  .card {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .art {
+    display: block;
+    aspect-ratio: 4 / 3;
+    background:
+      repeating-linear-gradient(135deg, var(--surface, #efe9e0) 0 12px, #e7e0d5 12px 24px);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .art[data-kind="digital"] {
+    background: repeating-linear-gradient(45deg, #e9eef4 0 14px, #dfe7f0 14px 28px);
+  }
+  .art[data-kind="subscription"] {
+    background: repeating-linear-gradient(90deg, #efe4e4 0 10px, #e6d6d6 10px 20px);
+  }
+  .info {
+    padding: var(--space-3);
+    display: grid;
+    gap: var(--space-1);
+  }
+  h3 {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  h3 a {
+    text-decoration: none;
+  }
+  h3 a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .meta {
+    margin: 0;
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: #3f9d63;
+  }
+  .dot.out {
+    background: var(--muted);
+  }
+  .fallback {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 0 0.35rem;
+  }
+</style>

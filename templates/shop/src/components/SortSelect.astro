@@ -1,0 +1,54 @@
+---
+import { t } from "../i18n/ui";
+import type { Locale } from "../config/site";
+import type { Facets } from "../lib/facets";
+
+interface Props {
+  locale: Locale;
+  facets: Facets;
+  basePath: string;
+}
+const { locale, facets, basePath } = Astro.props;
+// GET form keeps sorting JS-free; page resets on sort change; q preserved.
+const q = facets.q;
+---
+<form class="sort" method="get" action={basePath}>
+  {q && <input type="hidden" name="q" value={q} />}
+  <label>
+    {t("shop.sort", locale)}
+    <select name="sort" data-auto-submit>
+      <option value="new" selected={facets.sort === "new"}>{t("shop.sort.new", locale)}</option>
+      <option value="priceAsc" selected={facets.sort === "priceAsc"}>{t("shop.sort.priceAsc", locale)}</option>
+      <option value="priceDesc" selected={facets.sort === "priceDesc"}>{t("shop.sort.priceDesc", locale)}</option>
+    </select>
+  </label>
+</form>
+<script>
+  // Progressive enhancement: auto-submit on change; works without JS via GET button-less form? (select needs submit)
+  document.querySelectorAll("[data-auto-submit]").forEach((el) => {
+    el.addEventListener("change", () => (el.closest("form") as HTMLFormElement).submit());
+  });
+</script>
+<style>
+  .sort {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  select {
+    font: inherit;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+  }
+  select:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+</style>

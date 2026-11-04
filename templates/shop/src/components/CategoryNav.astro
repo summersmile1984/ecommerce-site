@@ -1,0 +1,55 @@
+---
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import type { TaxTerm } from "../lib/emdash";
+
+interface Props {
+  locale: Locale;
+  terms: TaxTerm[];
+  active?: string;
+}
+const { locale, terms, active } = Astro.props;
+---
+<nav class="cats" aria-label="Categories">
+  <a
+    class:list={["cat", !active && "on"]}
+    href={localizePath("/shop", locale)}
+  >
+    {t("shop.filter.all", locale)}
+  </a>
+  {
+    terms.map((term) => (
+      <a
+        class:list={["cat", active === term.slug && "on"]}
+        href={localizePath(`/shop/c/${term.slug}`, locale)}
+      >
+        {term.label}
+      </a>
+    ))
+  }
+</nav>
+<style>
+  .cats {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+  }
+  .cat {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    color: var(--muted);
+    padding-bottom: 0.2rem;
+    border-bottom: 2px solid transparent;
+  }
+  .cat:hover {
+    color: var(--ink);
+  }
+  .cat.on {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+</style>

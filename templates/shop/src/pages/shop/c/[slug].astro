@@ -1,0 +1,33 @@
+---
+import ShopView from "../../../views/ShopView.astro";
+import { catalogProducts, listTerms, getSettings } from "../../../lib/emdash";
+import { parseFacets, applyFacets } from "../../../lib/facets";
+import { localizePath } from "../../../i18n/routing";
+import { t } from "../../../i18n/ui";
+
+// SSR: params come from the request — no getStaticPaths in output:"server"
+const slug = Astro.params.slug ?? "";
+const categories = await listTerms("product_category");
+const term = categories.find((x) => x.slug === slug);
+if (!term) return Astro.rewrite("/404");
+
+const facets = parseFacets(Astro.url.searchParams);
+const all = await catalogProducts("en");
+const products = all.filter((p) => (p.terms?.product_category ?? []).some((c) => c.slug === slug));
+const { items, total, pageCount } = applyFacets(products, facets, 12);
+const currency = (await getSettings()).defaultCurrency ?? "USD";
+---
+<ShopView
+  locale="en"
+  {items}
+  {total}
+  {pageCount}
+  {facets}
+  {categories}
+  {currency}
+  canonical={localizePath(`/shop/c/${slug}`, "en")}
+  noindex
+  basePath={`/shop/c/${slug}`}
+  activeCategory={slug}
+  title={`${t("tax.category", "en")} · ${term.label}`}
+/>
