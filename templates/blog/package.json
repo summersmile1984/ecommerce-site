@@ -1,0 +1,27 @@
+{
+  "name": "@template/blog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node scripts/manifest-update.mjs",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "seo-check": "node scripts/seo-check.mjs",
+    "new-backend": "node scripts/init-backend.mjs"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "astro": "^6.4.8"
+  },
+  "devDependencies": {
+    "node-html-parser": "^9.0.6",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
