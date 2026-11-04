@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatMoney } from "../lib/emdash";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+
+interface OrderSummary {
+  id: string;
+  status: string;
+  createdAt: string;
+  total: { currency: string; amount: number } | null;
+  itemCount?: number;
+}
+interface Props {
+  locale: Locale;
+  email?: string;
+  orders?: OrderSummary[];
+  error?: string;
+}
+const { locale, email = "", orders, error } = Astro.props;
+const submitted = orders !== undefined;
+---
+<BaseLayout title={t("orders.title", locale)} description={t("orders.title", locale)} {locale} path={localizePath("/orders/lookup", locale)} noindex>
+  <div class="wrap">
+    <h1>{t("orders.title", locale)}</h1>
+    <form method="post" action={localizePath("/orders/lookup", locale)} class="panel">
+      <label>
+        {t("orders.email", locale)}
+        <input type="email" name="email" value={email} required placeholder="you@example.com" />
+      </label>
+      <button type="submit">{t("orders.search", locale)}</button>
+    </form>
+    {error && <p class="banner" role="alert">{error}</p>}
+    {submitted && !error && (
+      orders.length === 0 ? (
+        <p class="empty">{t("orders.none", locale)}</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr>
+                <td class="tabular">{o.id.slice(0, 10)}…</td>
+                <td>{o.createdAt.slice(0, 10)}</td>
+                <td>{o.status}</td>
+                <td class="num tabular">
+                  {o.total ? formatMoney(o.total.amount, o.total.currency) : t("orders.empty", locale)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )
+    )}
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 48rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+  }
+  .panel {
+    display: flex;
+    gap: var(--space-2);
+    align-items: end;
+    margin: var(--space-4) 0;
+    padding: var(--space-3);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  .panel label {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    flex: 1;
+  }
+  .panel input {
+    font: inherit;
+    padding: 0.5rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+  }
+  .panel input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+  button {
+    background: var(--accent);
+    color: var(--paper);
+    border: 0;
+    border-radius: var(--radius);
+    padding: 0.55rem 1.1rem;
+    font-weight: 600;
+  }
+  .banner {
+    border-left: 3px solid var(--accent);
+    padding: 0.5rem 1rem;
+  }
+  .empty {
+    color: var(--muted);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th,
+  td {
+    padding: 0.55rem 0.4rem;
+    border-bottom: 1px solid var(--hairline);
+    text-align: left;
+    font-size: 0.95rem;
+  }
+  .num {
+    text-align: right;
+  }
+</style>

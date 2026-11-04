@@ -1,0 +1,33 @@
+---
+import OrdersLookupView from "../../views/OrdersLookupView.astro";
+import { forwardJson, lookupPath } from "../../lib/relay";
+
+interface OrderSummary {
+  id: string;
+  status: string;
+  createdAt: string;
+  total: { currency: string; amount: number } | null;
+  itemCount?: number;
+}
+
+let email = "";
+let orders: OrderSummary[] | undefined;
+let error: string | undefined;
+
+if (Astro.request.method === "POST") {
+  const form = new URLSearchParams(await Astro.request.text());
+  email = (form.get("email") ?? "").trim();
+  if (!email.includes("@")) {
+    error = "valid email required";
+  } else {
+    const res = await forwardJson(lookupPath(email), { method: "GET" });
+    if (res.ok) {
+      const json = (await res.json()) as { orders?: OrderSummary[] };
+      orders = json.orders ?? [];
+    } else {
+      error = `lookup failed (${res.status})`;
+    }
+  }
+}
+---
+<OrdersLookupView locale="en" {email} {orders} {error} />
