@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { t, dictionaries, type MessageKey } from "./ui";
+import { t, dictionaries } from "./ui";
 import { localeFromPath, localizePath, stripLocale } from "./routing";
 
 describe("dictionary parity", () => {

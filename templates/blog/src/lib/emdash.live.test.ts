@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { listPosts, translationsOf, listTerms, catalog } from "./emdash";
+import { loadDotEnv } from "./dotenv";
 
+loadDotEnv(); // .env-only runs enable the live suite (README: npm test just works)
 const live = !!process.env.EMDASH_URL;
 
 describe.skipIf(!live)("live backend", () => {

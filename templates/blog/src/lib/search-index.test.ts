@@ -24,3 +24,12 @@ describe("search index", () => {
     );
   });
 });
+
+describe("index locale stamping (I2)", () => {
+  it("stamps the PAGE locale even for fallback-sourced posts", () => {
+    const fallback = { ...post("x", "En only", "en excerpt"), locale: "en" } as ReturnType<typeof post>;
+    const idx = buildSearchIndex([fallback], "zh", "/blog");
+    expect(idx[0].locale).toBe("zh"); // visible on the zh site → must match zh filter
+    expect(idx[0].href).toBe("/zh/blog/x");
+  });
+});

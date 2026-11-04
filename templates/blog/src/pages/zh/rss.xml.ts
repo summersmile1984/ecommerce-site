@@ -3,7 +3,7 @@ import { renderRss } from "../../lib/rss";
 import { catalog } from "../../lib/emdash";
 import { localizePath } from "../../i18n/routing";
 import { t } from "../../i18n/ui";
-import { site, siteUrl, type Locale } from "../../config/site";
+import { siteUrl, type Locale } from "../../config/site";
 
 export const GET: APIRoute = async () => {
   const locale: Locale = "zh";

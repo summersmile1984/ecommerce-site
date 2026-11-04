@@ -19,6 +19,7 @@ interface Props {
   jsonLd?: Record<string, unknown>[];
   ogType?: string;
   translations?: Record<string, string>;
+  noindex?: boolean;
 }
 const {
   title,
@@ -29,6 +30,7 @@ const {
   jsonLd = [],
   ogType = "website",
   translations,
+  noindex = false,
 } = Astro.props;
 const canonical = canonicalUrl(Astro.site!.toString(), path);
 const siteName = t("site.name", locale);
@@ -51,6 +53,7 @@ const pairs: Alternate[] = site.locales.map(
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
     <link
       rel="alternate"

@@ -1,5 +1,6 @@
 ---
 import BlogListView from "./BlogListView.astro";
+import { t } from "../i18n/ui";
 import type { Locale } from "../config/site";
 import type { Post, TaxTerm } from "../lib/emdash";
 
@@ -11,6 +12,7 @@ interface Props {
 }
 const { locale, term, posts, kind } = Astro.props;
 const basePath = `/blog/${kind}/${term.slug}`;
+const kindLabel = t(kind === "category" ? "tax.category" : "tax.tag", locale);
 ---
 <BlogListView
   {locale}
@@ -18,5 +20,5 @@ const basePath = `/blog/${kind}/${term.slug}`;
   page={1}
   pageCount={1}
   {basePath}
-  title={`${kind === "category" ? "Category" : "Tag"} · ${term.label}`}
+  title={`${kindLabel} · ${term.label}`}
 />

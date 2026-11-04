@@ -29,7 +29,6 @@ export async function getStaticPaths() {
     }));
   });
 }
-const { slug } = Astro.params;
 const { locale, post, prev, next, related } = Astro.props;
 const tlist = await translationsOf(post.id);
 const translations = Object.fromEntries(tlist.map((x) => [x.locale, x.slug]));

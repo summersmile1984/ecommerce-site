@@ -19,14 +19,15 @@
 
 import { definePlugin, type PluginContext } from "emdash";
 
-// Dynamic by necessity: cloudflare:workers only exists on Workers runtimes
-// (Node dev/build must still load this module).
+// Dynamic by necessity: cloudflare:workers only exists on Workers runtimes.
+// Node dev/build must still load this module — fall back to process.env so
+// SSG_BUILD_HOOK / PURGE_* work when the backend runs under `astro dev`.
 async function loadEnv(): Promise<Record<string, unknown>> {
-	try {
-		return (await import("cloudflare:workers")).env;
-	} catch {
-		return {};
-	}
+  try {
+    return (await import("cloudflare:workers")).env;
+  } catch {
+    return typeof process !== "undefined" ? (process.env as Record<string, unknown>) : {};
+  }
 }
 
 async function pushPurge(collection: string, id: string | undefined, ctx: PluginContext) {

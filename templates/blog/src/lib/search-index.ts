@@ -14,7 +14,10 @@ export function buildSearchIndex(posts: Post[], locale: Locale, basePath: string
     title: p.data.title,
     href: localizePath(`${basePath}/${p.slug}`, locale),
     excerpt: p.data.excerpt ?? "",
-    locale: p.locale,
+    // Stamp the SITE locale this entry is served under (fallback posts keep
+    // their source language but appear on the locale's own href) — the pages
+    // filter the combined index by this field (I2).
+    locale,
   }));
 }
 

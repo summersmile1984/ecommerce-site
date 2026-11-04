@@ -1,4 +1,5 @@
 import { site, type Locale } from "../config/site";
+import { loadDotEnv } from "./dotenv";
 
 export interface TaxTerm {
   slug: string;
@@ -17,6 +18,7 @@ export interface Post {
 }
 
 function env(): { base: string; pat: string } {
+  loadDotEnv(); // dev pages never see Astro's buildStart .env copy (C1)
   const base = process.env.EMDASH_URL;
   const pat = process.env.PAT;
   if (!base || !pat) throw new Error("EMDASH_URL and PAT are required at build time (see .env.example)");

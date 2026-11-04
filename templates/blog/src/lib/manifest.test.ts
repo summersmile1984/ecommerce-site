@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { diffManifest, manifestKey, manifestKeyForUrl } from "./manifest";
+import { diffManifest, manifestKey, manifestKeyForUrl, normalizeSitemapUrl } from "./manifest";
 
 describe("manifest change detection", () => {
   it("keys by locale AND slug (zh/en same slug must not collide)", () => {
@@ -25,5 +25,14 @@ describe("manifest change detection", () => {
     expect(manifestKeyForUrl("/zh/blog/post-a/")).toBe("zh:post-a");
     expect(manifestKeyForUrl("/blog")).toBeNull(); // non-post pages have no lastmod
     expect(manifestKeyForUrl("/zh/blog/page/2/")).toBeNull();
+  });
+});
+
+describe("sitemap url normalization (I4)", () => {
+  it("strips trailing slashes to match page canonicals, keeps root", () => {
+    expect(normalizeSitemapUrl("https://ex.com/blog/a/")).toBe("https://ex.com/blog/a");
+    expect(normalizeSitemapUrl("https://ex.com/zh/blog/page/2/")).toBe("https://ex.com/zh/blog/page/2");
+    expect(normalizeSitemapUrl("https://ex.com/")).toBe("https://ex.com/");
+    expect(normalizeSitemapUrl("https://ex.com/zh")).toBe("https://ex.com/zh");
   });
 });

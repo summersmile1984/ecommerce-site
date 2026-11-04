@@ -6,14 +6,18 @@
 
 ## Quick start
 
+**Prerequisites:** Node ≥20 · git（`new-backend` 会 clone 后端仓库）· [bun](https://bun.sh)（后端 bootstrap 用；仅 `new-backend` 需要，模板自身 npm 即可）
+
 ```bash
 npm install
 npm run new-backend -- --dir ./backend   # provisioning EmDash 后端（clone dashcommerce starter、i18n、双语种子、PAT）
-cp .env.example .env                     # 填入脚本输出的 EMDASH_URL / PAT
+cp .env.example .env                     # 填入脚本输出的 EMDASH_URL / PAT / SITE_URL
 npm run dev
 ```
 
 已有后端？跳过 `new-backend`，直接填 `.env`（后端需在 `astro.config` 配置 `i18n: { locales, defaultLocale }`）。
+
+> `.env` 由模板自带的加载器读取（dev / build / prebuild / seo-check 全链一致，shell 环境变量优先）；无需 dotenv 依赖。
 
 ## Scripts
 
@@ -58,6 +62,18 @@ npm run dev
 `npm run seo-check` 覆盖：绝对 canonical、全页 hreflang + x-default、JSON-LD 可解析、
 **PAT 零泄漏**（grep `dist/`）、sitemap `xhtml:link` alternates、双语 RSS、缺译回退页
 （`/zh/blog/<en-only-slug>` 渲染 en 正文 + zh 自指 canonical）。
+
+## Auto-rebuild on publish（spec §4.1）
+
+`new-backend` 会把 `frontend-purge` 插件装进后端：`content:afterPublish` 触发时向 `SSG_BUILD_HOOK` POST。接 Cloudflare Pages deploy hook：
+
+```bash
+# 后端 dev 需要在带此变量的 shell 里启动（脚本 spawn 会继承）
+export SSG_BUILD_HOOK="https://api.cloudflare.com/client/v4/accounts/<acct>/pages/projects/<proj>/deploy-hooks/<id>"
+npm run new-backend -- --dir ./backend
+```
+
+发布内容 → hook 触发 CI → `npm run build`（prebuild 增量检测）→ `seo-check` 可作为 CI 门禁。未配置该变量时插件静默跳过。
 
 ## 结构
 

@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { t } from "../../i18n/ui";
+import { localizePath } from "../../i18n/routing";
+import { site, type Locale } from "../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = Astro.params.locale as Locale;
+---
+<BaseLayout
+  title={t("about.title", locale)}
+  description={t("about.body", locale).slice(0, 160)}
+  {locale}
+  path={localizePath("/about", locale)}
+>
+  <div class="wrap">
+    <h1>{t("about.title", locale)}</h1>
+    <p class="body">{t("about.body", locale)}</p>
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  h1 {
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    margin: 0 0 var(--space-4);
+  }
+  .body {
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+</style>

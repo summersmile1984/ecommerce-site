@@ -20,8 +20,12 @@
     "astro": "^6.4.8"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "node-html-parser": "^9.0.6",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "vitest": "^5.1.0"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

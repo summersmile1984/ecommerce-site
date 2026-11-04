@@ -1,3 +1,5 @@
+import { loadDotEnv } from "../lib/dotenv";
+
 export const site = {
   locales: ["en", "zh"],
   defaultLocale: "en",
@@ -10,5 +12,7 @@ export const isLocale = (v: string): v is Locale =>
   (site.locales as readonly string[]).includes(v);
 
 /** Build-time site origin; mirrors astro.config `site`. */
-export const siteUrl = (): string =>
-  (process.env.SITE_URL ?? "http://localhost:4321").replace(/\/$/, "");
+export const siteUrl = (): string => {
+  loadDotEnv();
+  return (process.env.SITE_URL ?? "http://localhost:4321").replace(/\/$/, "");
+};

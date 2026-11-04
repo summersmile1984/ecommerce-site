@@ -24,3 +24,12 @@ export function manifestKeyForUrl(pathname: string): string | null {
   if (rest[0] !== "blog" || rest.length !== 2 || rest[1] === "page") return null;
   return manifestKey(hasLocale ? "zh" : "en", rest[1]);
 }
+
+/** Sitemap <loc> must equal the page's canonical form: no trailing slash (root kept). */
+export function normalizeSitemapUrl(url: string): string {
+  const u = new URL(url);
+  if (u.pathname.length > 1 && u.pathname.endsWith("/")) {
+    u.pathname = u.pathname.replace(/\/+$/, "");
+  }
+  return u.toString();
+}

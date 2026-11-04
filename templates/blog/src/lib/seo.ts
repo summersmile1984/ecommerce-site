@@ -10,7 +10,7 @@ export interface Alternate {
   href: string;
 }
 
-export function alternateLinks(site: string, _path: string, pairs: Alternate[]): string {
+export function alternateLinks(_site: string, _path: string, pairs: Alternate[]): string {
   const links = pairs.map(
     (p) => `<link rel="alternate" hreflang="${p.hreflang}" href="${p.href}" />`,
   );

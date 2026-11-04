@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 /** Prebuild: refresh .emdash-manifest.json from the API and print a change summary. */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { loadDotEnv } from "../src/lib/dotenv.ts";
+
+loadDotEnv();
 
 const base = process.env.EMDASH_URL;
 const pat = process.env.PAT;

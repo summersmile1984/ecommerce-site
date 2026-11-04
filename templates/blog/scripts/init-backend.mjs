@@ -6,7 +6,8 @@
  *   node scripts/init-backend.mjs [--dir ./backend] [--up http://localhost:4321] [--skip-clone]
  */
 import { execSync, spawn } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, copyFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { blocks } from "./lib/portable-text.mjs";
 
 const args = process.argv.slice(2);
@@ -57,6 +58,25 @@ if (!config.includes("fonts: false")) {
     "storage,\n\t\t\t// offline build: skip Google Fonts provider\n\t\t\tfonts: false,",
   );
 }
+// --- 2b. install frontend-purge plugin (publish → SSG_BUILD_HOOK, spec §4.1) ---
+const pluginSrc = new URL("../backend-plugin/", import.meta.url);
+const backendSrc = `${DIR}/packages/starter/src`;
+for (const f of ["purge-plugin.ts", "purge-plugin-entry.ts", "cloudflare-workers.d.ts"]) {
+  copyFileSync(fileURLToPath(new URL(f, pluginSrc)), `${backendSrc}/${f}`);
+}
+if (!config.includes('from "./src/purge-plugin"')) {
+  config = config.replace(
+    'import { dashcommerce } from "@dashcommerce/core";',
+    'import { dashcommerce } from "@dashcommerce/core";\nimport { purgePlugin } from "./src/purge-plugin";',
+  );
+}
+// purgePlugin in BOTH editions — the blog backend runs sandboxed
+config = config.replace(
+  /plugins: edition === "native" \? \[dashcommerce\(\)[^\]]*\] : \[[^\]]*\],/,
+  'plugins: edition === "native" ? [dashcommerce(), purgePlugin()] : [purgePlugin()],',
+);
+log("frontend-purge plugin installed (afterPublish → SSG_BUILD_HOOK)");
+
 if (config !== readFileSync(configPath, "utf8")) {
   writeFileSync(configPath, config);
   log("astro.config.mjs patched (i18n en/zh, fonts:false)");
@@ -91,6 +111,7 @@ if (!baseUrl) {
       stdio: "ignore",
     },
   );
+  spawned.unref(); // let the script exit while the backend keeps running
   baseUrl = "http://localhost:4321";
   log("waiting for backend health…");
   for (let i = 0; i < 60; i++) {
