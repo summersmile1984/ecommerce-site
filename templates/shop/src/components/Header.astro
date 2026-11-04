@@ -12,8 +12,6 @@ interface Props {
 }
 const { locale, path, translations } = Astro.props;
 const bare = stripLocale(path);
-// Cart badge count is optional: populated by the T14 cache middleware locals.
-const cartCount = Astro.locals.cartCount as number | undefined;
 const nav = [
   { href: localizePath("/", locale), label: t("nav.home", locale), match: bare === "/" },
   { href: localizePath("/shop", locale), label: t("nav.shop", locale), match: bare === "/shop" || bare.startsWith("/shop/") },
@@ -27,9 +25,6 @@ const nav = [
       nav.map((n) => (
         <a href={n.href} aria-current={n.match ? "page" : undefined}>
           {n.label}
-          {n.label === t("nav.cart", locale) && cartCount !== undefined && cartCount > 0 && (
-            <span class="badge tabular" data-cart-count>{cartCount}</span>
-          )}
         </a>
       ))
     }
@@ -74,14 +69,6 @@ const nav = [
     color: var(--ink);
     text-decoration: underline;
     text-decoration-color: var(--accent);
-  }
-  .badge {
-    background: var(--accent);
-    color: var(--paper);
-    border-radius: var(--radius);
-    font-size: 0.7rem;
-    padding: 0 0.35rem;
-    margin-left: 0.35rem;
   }
   .header-tools {
     display: flex;

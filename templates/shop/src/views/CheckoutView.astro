@@ -45,6 +45,7 @@ const { locale, cart, mode, error } = Astro.props;
       </section>
       <aside>
         <form method="post" action="/api/checkout/session">
+          <input type="hidden" name="returnTo" value={localizePath("/checkout", locale)} />
           <button type="submit" disabled={mode === "embedded" || cart.items.length === 0}>
             {t("checkout.continue", locale)} →
           </button>

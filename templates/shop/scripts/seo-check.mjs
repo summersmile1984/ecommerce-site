@@ -53,6 +53,14 @@ for (const loc of locs) {
   if (!sameHost(loc, SITE)) fail(`sitemap loc host ≠ SITE_URL: ${loc}`);
   if (hasTrailingSlash(loc)) fail(`sitemap loc has trailing slash: ${loc}`);
 }
+// every sitemap URL must actually resolve (catches wrong-slug zh locs)
+for (const loc of locs) {
+  const path = new URL(loc).pathname;
+  const res = await fetch(PREVIEW + path);
+  if (res.status !== 200) fail(`sitemap loc → ${res.status}: ${path}`);
+}
+ok(`sitemap locs all resolve200 (${locs.length} checked)`);
+
 if (!existsSync(join(STATIC, "robots.txt"))) fail("robots.txt missing");
 else if (!readFileSync(join(STATIC, "robots.txt"), "utf8").includes("Sitemap:")) fail("robots.txt missing Sitemap line");
 if (existsSync(join(STATIC, "rss.xml")) || existsSync(join(STATIC, "zh", "rss.xml"))) fail("shop must not ship rss feeds");

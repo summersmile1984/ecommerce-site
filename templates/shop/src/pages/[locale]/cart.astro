@@ -1,6 +1,7 @@
 ---
 import CartView from "../../views/CartView.astro";
 import { forwardJson, relayCookie, CART_BASE } from "../../lib/relay";
+import { getSettings } from "../../lib/emdash";
 import { site, type Locale } from "../../config/site";
 import type { Cart } from "../../lib/cart-types";
 import { isLocale } from "../../config/site";
@@ -30,5 +31,8 @@ const error = Astro.url.searchParams.get("error") !== null;
 if (cartRes.headers.get("set-cookie")) {
   Astro.response.headers.append("set-cookie", cartRes.headers.get("set-cookie") as string);
 }
+const { enabledCurrencies } = await getSettings();
+const currencies = enabledCurrencies ?? [];
+
 ---
-<CartView {locale} {cart} {error} {rates} />
+<CartView {locale} {cart} {error} {rates} {currencies} />

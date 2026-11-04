@@ -14,13 +14,16 @@ export const prerender = true;
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-const pairLinks = (path: string): string => {
+const zhFor = (path: string, zhPath?: string): string =>
+  path === "/" ? "/zh" : `/zh${zhPath ?? path}`;
+
+const pairLinks = (path: string, zhPath?: string): string => {
   const base = siteUrl();
-  const zhPath = path === "/" ? "/zh" : `/zh${path}`;
+  const zh = zhFor(path, zhPath);
   const pairs: Alternate[] = site.locales.map((l) => ({
     locale: l,
     hreflang: l,
-    href: canonicalUrl(base, l === "en" ? path : zhPath),
+    href: canonicalUrl(base, l === "en" ? path : zh),
   }));
   const links = pairs
     .map((p) => `<xhtml:link rel="alternate" hreflang="${p.hreflang}" href="${esc(p.href)}"/>`)
@@ -31,6 +34,8 @@ const pairLinks = (path: string): string => {
 
 interface Entry {
   path: string;
+  /** zh URL path when it differs from the generic `/zh<path>` mapping (translated product slugs). */
+  zhPath?: string;
   lastmod?: string;
 }
 
@@ -45,17 +50,27 @@ export const GET: APIRoute = async () => {
   // categories
   const terms = await listTerms("product_category");
   for (const term of terms) entries.push({ path: `/shop/c/${term.slug}` });
-  // products (every slug exists in both locales — fallback serves /zh/)
+  // products: zh loc must use the translated slug when one exists
+  // (review finding4: /zh/shop/<en-slug>404s for translated products)
   const products = await catalogProducts(site.defaultLocale);
-  for (const p of products) entries.push({ path: `/shop/${p.slug}`, lastmod: p.updatedAt });
+  const zhView = await catalogProducts("zh");
+  const zhSlugByGroup = new Map(zhView.map((p) => [p.translationGroup ?? p.id, p.slug]));
+  for (const p of products) {
+    const zhSlug = zhSlugByGroup.get(p.translationGroup ?? p.id) ?? p.slug;
+    entries.push({
+      path: `/shop/${p.slug}`,
+      zhPath: `/shop/${zhSlug}`,
+      lastmod: p.updatedAt,
+    });
+  }
 
   const urls = site.locales
     .flatMap((l) =>
       entries.map((e) => {
-        const path = l === "en" ? e.path : e.path === "/" ? "/zh" : `/zh${e.path}`;
+        const path = l === "en" ? e.path : zhFor(e.path, e.zhPath);
         const loc = canonicalUrl(base, path);
         const last = e.lastmod ? `<lastmod>${e.lastmod}</lastmod>` : "";
-        return `<url><loc>${esc(loc)}</loc>${last}${pairLinks(e.path)}</url>`;
+        return `<url><loc>${esc(loc)}</loc>${last}${pairLinks(e.path, e.zhPath)}</url>`;
       }),
     )
     .join("");

@@ -1,6 +1,6 @@
 ---
 import { t } from "../i18n/ui";
-import { localizePath, stripLocale } from "../i18n/routing";
+import { localizePath, stripLocale, replaceLastSegment } from "../i18n/routing";
 import { site, type Locale } from "../config/site";
 
 interface Props {
@@ -13,12 +13,7 @@ const other: Locale = locale === site.defaultLocale ? "zh" : "en";
 // Post pages pass translation slugs (same content, other language);
 // other pages switch to the same path under the other locale prefix.
 const target = translations?.[other]
-  ? localizePath(
-      other === site.defaultLocale
-        ? `/blog/${translations[other]}`
-        : `/zh/blog/${translations[other]}`,
-      other,
-    )
+  ? replaceLastSegment(stripLocale(path), translations[other])
   : localizePath(stripLocale(path), other);
 ---
 <a class="lang" href={target} hreflang={other}>{t("lang.switch", locale)}</a>

@@ -7,9 +7,14 @@ import { forwardJson, relayCookie, parseSessionResponse, CART_BASE } from "../..
  * so the checkout page can render checkout.notConfigured (R4).
  */
 export const POST: APIRoute = async ({ request }) => {
+  const rawBody = await request.text();
+  let formReturn: string | null = null;
+  if ((request.headers.get("Content-Type") ?? "").includes("application/x-www-form-urlencoded")) {
+    formReturn = new URLSearchParams(rawBody).get("returnTo");
+  }
   const res = await forwardJson(
     `${CART_BASE}/checkout/create-session`,
-    { method: "POST", body: await request.text() },
+    { method: "POST", body: rawBody },
     relayCookie(request),
   );
   const parsed = parseSessionResponse(res.status, await res.text());
@@ -21,7 +26,10 @@ export const POST: APIRoute = async ({ request }) => {
   const wantsHtml = (request.headers.get("Accept") ?? "").includes("text/html");
   if (wantsHtml) {
     const flag = parsed.error.includes("not configured") ? "notconfigured" : "generic";
-    return new Response(null, { status: 303, headers: { Location: `/checkout?error=${flag}` } });
+    const sent = formReturn ?? "";
+    const target = sent.startsWith("/") && !sent.startsWith("//") ? sent : "/checkout";
+    const sep = target.includes("?") ? "&" : "?";
+    return new Response(null, { status: 303, headers: { Location: `${target}${sep}error=${flag}` } });
   }
   return new Response(JSON.stringify({ error: parsed.error, status: parsed.status }), {
     status: parsed.status,

@@ -58,7 +58,7 @@ export STRIPE_SECRET_KEY=sk_test_…                   # new-backend 写入后�
 npm run new-backend -- --dir ./backend --port 4325
 ```
 
-- 结账页 `POST /checkout` → 后端 `checkout/create-session` → 303 到 `checkout.stripe.com`
+- 结账表单 `POST /api/checkout/session`（带 locale 化 `returnTo`）→ 后端 `checkout/create-session` → 303 到 `checkout.stripe.com`；错误 → 303 回 `returnTo?error=…`
 - 未配置密钥时页面显示 `checkout.notConfigured`（优雅降级，非崩溃）
 - embedded 模式本模板不支持（后端 `checkout/mode` 会返回，页面给出提示）
 - 测试卡：`4242 4242 4242 4242`（Stripe test mode）
@@ -66,11 +66,14 @@ npm run new-backend -- --dir ./backend --port 4325
 ## Deploy（CF Worker）
 
 ```bash
-DEPLOY_TARGET=cloudflare npm run build
-# wrangler deploy（后端 starter 的 wrangler.jsonc 需补 CACHE 绑定 id，new-backend 已加 binding 占位）
+DEPLOY_TARGET=cloudflare npm run build        # SITE_URL 从 .env/环境读入 canonical 与 sitemap
+npx wrangler deploy -c dist/server/wrangler.json
 ```
 
-后端 `wrangler.jsonc` 的 `PURGE_URL` 改为**前端生产域名**的 `/api/purge`，`PURGE_SECRET` 与前端一致（`wrangler secret put`）。
+- **构建期**：`SITE_URL` 必须 = 生产域名（写进 canonical/hreflang/sitemap）。根目录 `wrangler.jsonc` 只是输入（name / compat date / vars）；adapter 在构建时生成部署用的 `dist/server/wrangler.json`（自动补 `main`、`assets`→`../client`、`SESSION` KV 绑定）。
+- **运行期**：worker 内 `process.env`（`nodejs_compat` 映射 worker vars/secrets），需在 CF 侧提供：`wrangler secret put PAT`、`wrangler secret put PURGE_SECRET`、以及 `EMDASH_URL`（后端 origin，公网可达）——三者缺一则 SSR 页面在请求时抛 “EMDASH_URL and PAT are required”。
+- **预渲染**：`404/sitemap/robots` 三条静态路由以 `prerenderEnvironment: "node"` 在构建机生成（见 `astro.config.mjs` 注释：workd 自定义 prerenderer 会留下无 input 的 prerender 环境导致构建崩溃）；部署后的运行时仍是 workerd。
+- **后端**（starter）部署到 CF 时：其 `wrangler.jsonc` 的 `PURGE_URL` 改为**前端生产域名**的 `/api/purge`，`PURGE_SECRET` 与前端一致（`wrangler secret put`），CACHE 绑定 id 由 `new-backend` 的占位补齐。
 
 ## Trust model（订单查询）
 

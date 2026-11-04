@@ -1,5 +1,6 @@
 import { site, type Locale } from "../config/site";
 import { loadDotEnv } from "./dotenv";
+import { createTtlCache } from "./ttl-cache";
 
 export interface TaxTerm {
   slug: string;
@@ -103,7 +104,10 @@ export function pickLocalized(entries: Product[], locale: Locale): Product[] {
 }
 
 const TAXONOMIES = ["product_category"] as const;
-const termsMemo = new Map<string, TaxTerm[]>();
+// TTL + purge-linked (C2): SSR processes are long-lived; without this the
+// catalog froze at first render and auto-purge could never show changes.
+const termsMemo = createTtlCache<TaxTerm[]>(60_000);
+const catalogCache = createTtlCache<Product[]>(60_000);
 
 async function termsOf(id: string, taxonomy: string): Promise<TaxTerm[]> {
   const key = `${id}:${taxonomy}`;
@@ -116,8 +120,6 @@ async function termsOf(id: string, taxonomy: string): Promise<TaxTerm[]> {
   termsMemo.set(key, terms);
   return terms;
 }
-
-const catalogCache = new Map<string, Product[]>();
 
 /**
  * Full product catalog for a locale: fetch BOTH locale lists, collapse
@@ -167,4 +169,12 @@ export function priceOf(
 ): { currency: string; amount: number } | null {
   const exact = p.data.prices?.[currency];
   return exact ? { currency, amount: exact.amount } : null;
+}
+
+/** Called by /api/purge so a backend save becomes visible on the next render. */
+export function purgeCatalogCaches(): number {
+  const n = catalogCache.size() + termsMemo.size();
+  catalogCache.clear();
+  termsMemo.clear();
+  return n;
 }

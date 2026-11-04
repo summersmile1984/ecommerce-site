@@ -1,14 +1,8 @@
 ---
 import OrdersLookupView from "../../views/OrdersLookupView.astro";
 import { forwardJson, lookupPath } from "../../lib/relay";
+import { summarizeOrders, type OrderSummary } from "../../lib/orders";
 
-interface OrderSummary {
-  id: string;
-  status: string;
-  createdAt: string;
-  total: { currency: string; amount: number } | null;
-  itemCount?: number;
-}
 
 let email = "";
 let orders: OrderSummary[] | undefined;
@@ -22,8 +16,8 @@ if (Astro.request.method === "POST") {
   } else {
     const res = await forwardJson(lookupPath(email), { method: "GET" });
     if (res.ok) {
-      const json = (await res.json()) as { orders?: OrderSummary[] };
-      orders = json.orders ?? [];
+      const json = (await res.json()) as { items?: unknown };
+      orders = summarizeOrders(json);
     } else {
       error = `lookup failed (${res.status})`;
     }

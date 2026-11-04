@@ -30,5 +30,5 @@ const currency = (await getSettings()).defaultCurrency ?? "USD";
   {currency}
   canonical={localizePath("/shop", locale)}
   noindex={shopNoindex(facets)}
-  basePath="/shop"
+  basePath={localizePath("/shop", locale)}
 />

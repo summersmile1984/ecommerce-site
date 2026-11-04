@@ -38,7 +38,7 @@ const currency = (await getSettings()).defaultCurrency ?? "USD";
   {currency}
   canonical={localizePath(`/shop/c/${slug}`, locale)}
   noindex
-  basePath={`/shop/c/${slug}`}
+  basePath={localizePath(`/shop/c/${slug}`, locale)}
   activeCategory={slug}
   title={`${t("tax.category", locale)} · ${term.label}`}
 />

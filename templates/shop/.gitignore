@@ -2,5 +2,6 @@ node_modules/
 dist/
 .env
 .astro/
+.wrangler/
 backend-info.json
 backend/

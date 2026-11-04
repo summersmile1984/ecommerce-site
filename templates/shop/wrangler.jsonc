@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "shop-template",
+  // The @astrojs/cloudflare adapter supplies `main` (its server entrypoint),
+  // `assets`, and the SESSION KV binding automatically when building — this
+  // file only names the Worker and pins the compat date. Deploy against the
+  // generated `dist/server/wrangler.json` after `DEPLOY_TARGET=cloudflare
+  // npx astro build` (see README → Deploy to Cloudflare).
+  "compatibility_date": "2026-04-15",
+  "compatibility_flags": ["nodejs_compat"],
+  // Runtime secrets (not here — `wrangler secret put` after deploy):
+  //   EMDASH_URL / EMDASH_PAT — backend origin (only if proxying admin)
+  // Site-level env at build time: SITE_URL (canonical origin for sitemap/SEO).
+  "vars": {
+    "SITE_URL": "https://example.com"
+  }
+}

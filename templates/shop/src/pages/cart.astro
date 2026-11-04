@@ -1,6 +1,7 @@
 ---
 import CartView from "../views/CartView.astro";
 import { forwardJson, relayCookie, CART_BASE } from "../lib/relay";
+import { getSettings } from "../lib/emdash";
 import type { Cart } from "../lib/cart-types";
 
 const cookie = relayCookie(Astro.request);
@@ -19,5 +20,8 @@ if (cart && cart.shippingAddress) {
 
 const error = Astro.url.searchParams.get("error") !== null;
 if (setCookie) Astro.response.headers.append("set-cookie", setCookie);
+const { enabledCurrencies } = await getSettings();
+const currencies = enabledCurrencies ?? [];
+
 ---
-<CartView locale="en" {cart} {error} {rates} />
+<CartView locale="en" {cart} {error} {rates} {currencies} />

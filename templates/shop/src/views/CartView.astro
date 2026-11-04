@@ -11,8 +11,9 @@ interface Props {
   cart: Cart | null;
   error?: boolean;
   rates: ShippingRate[];
+  currencies?: string[];
 }
-const { locale, cart, error, rates } = Astro.props;
+const { locale, cart, error, rates, currencies = [] } = Astro.props;
 const hasAddress = !!cart?.shippingAddress;
 ---
 <BaseLayout title={t("cart.title", locale)} description={t("cart.title", locale)} {locale} path={localizePath("/cart", locale)}>
@@ -20,9 +21,23 @@ const hasAddress = !!cart?.shippingAddress;
     <h1>{t("cart.title", locale)}</h1>
     {error && <p class="banner" role="alert">{t("error.retry", locale)}</p>}
     {!cart || cart.items.length === 0 ? (
-      <p class="empty">
-        {t("cart.empty", locale)} <a href="/shop">{t("nav.shop", locale)} →</a>
-      </p>
+      <>
+        <p class="empty">
+          {t("cart.empty", locale)} <a href={localizePath("/shop", locale)}>{t("nav.shop", locale)} →</a>
+        </p>
+        {currencies.length > 1 && (
+          <form method="post" action="/api/cart/currency" class="panel currency">
+            <p class="label">Currency</p>
+            <select name="currency">
+              {currencies.map((c) => (
+                <option value={c} selected={cart?.currency === c}>{c}</option>
+              ))}
+            </select>
+            <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
+            <button type="submit" class="ghost">{t("cart.apply", locale)}</button>
+          </form>
+        )}
+      </>
     ) : (
       <div class="grid">
         <table>
@@ -42,7 +57,7 @@ const hasAddress = !!cart?.shippingAddress;
                   <form method="post" action="/api/cart/item" class="inline">
                     <input type="hidden" name="lineId" value={item.lineId} />
                     <input type="hidden" name="_method" value="PATCH" />
-                    <input type="hidden" name="returnTo" value="/cart" />
+                    <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
                     <input class="tabular" type="number" name="quantity" value={item.quantity} min="0" max="999" aria-label={t("cart.quantity", locale)} />
                     <button type="submit" aria-label="✓">↻</button>
                   </form>
@@ -52,7 +67,7 @@ const hasAddress = !!cart?.shippingAddress;
                   <form method="post" action="/api/cart/item" class="inline">
                     <input type="hidden" name="lineId" value={item.lineId} />
                     <input type="hidden" name="_method" value="DELETE" />
-                    <input type="hidden" name="returnTo" value="/cart" />
+                    <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
                     <button type="submit" class="link">{t("cart.remove", locale)}</button>
                   </form>
                 </td>
@@ -95,13 +110,13 @@ const hasAddress = !!cart?.shippingAddress;
               {t("cart.coupon", locale)}
               <input name="code" placeholder="SAVE10" required />
             </label>
-            <input type="hidden" name="returnTo" value="/cart" />
+            <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
             <button type="submit">{t("cart.apply", locale)}</button>
           </form>
           {cart.coupons.length > 0 && (
             <form method="post" action="/api/cart/coupon/remove" class="panel">
               <p class="tabular">{cart.coupons.map((c) => c.code).join(", ")}</p>
-              <input type="hidden" name="returnTo" value="/cart" />
+              <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
               <button type="submit" class="ghost">{t("cart.remove", locale)}</button>
             </form>
           )}
@@ -116,7 +131,7 @@ const hasAddress = !!cart?.shippingAddress;
               Postal code
               <input name="postalCode" value={cart.shippingAddress?.postalCode ?? ""} placeholder="10001" required />
             </label>
-            <input type="hidden" name="returnTo" value="/cart" />
+            <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
             <button type="submit" class="ghost">Save address</button>
           </form>
 
@@ -134,12 +149,12 @@ const hasAddress = !!cart?.shippingAddress;
                   {r.label ?? r.name} · {formatMoney(r.amount ?? r.price?.amount ?? 0, cart.currency)}
                 </label>
               ))}
-              <input type="hidden" name="returnTo" value="/cart" />
+              <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
               <button type="submit" class="ghost">Use method</button>
             </form>
           )}
 
-          <a class="checkout" href="/checkout">{t("cart.checkout", locale)} →</a>
+          <a class="checkout" href={localizePath("/checkout", locale)}>{t("cart.checkout", locale)} →</a>
         </aside>
       </div>
     )}
@@ -216,6 +231,9 @@ const hasAddress = !!cart?.shippingAddress;
   .inline button:hover,
   .link:hover {
     color: var(--accent);
+  }
+  .currency {
+    max-width: 16rem;
   }
   .side {
     display: grid;

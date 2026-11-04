@@ -1,13 +1,6 @@
 import type { APIRoute } from "astro";
 import { forwardJson, lookupPath } from "../../../lib/relay";
-
-interface AdminOrder {
-  id: string;
-  status?: string;
-  createdAt?: string;
-  total?: { currency: string; amount: number };
-  items?: unknown[];
-}
+import { summarizeOrders } from "../../../lib/orders";
 
 /**
  * POST /api/orders/lookup {email} → admin/orders?email= via server-side PAT.
@@ -25,14 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!res.ok) {
     return new Response(JSON.stringify({ error: `lookup failed (${res.status})` }), { status: res.status });
   }
-  const json = (await res.json()) as { items?: AdminOrder[] };
-  const orders = (json.items ?? []).map((o) => ({
-    id: o.id,
-    status: o.status ?? "unknown",
-    createdAt: o.createdAt ?? "",
-    total: o.total ?? null,
-    itemCount: Array.isArray(o.items) ? o.items.length : undefined,
-  }));
+  const orders = summarizeOrders((await res.json()) as { items?: unknown });
   return new Response(JSON.stringify({ orders }), {
     headers: { "Content-Type": "application/json" },
   });

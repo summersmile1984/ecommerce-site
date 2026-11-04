@@ -4,21 +4,6 @@ import { forwardJson, relayCookie, CART_BASE } from "../lib/relay";
 import type { Cart } from "../lib/cart-types";
 
 // POST = form submit: run create-session here so browsers get redirects, not JSON.
-if (Astro.request.method === "POST") {
-  const res = await forwardJson(
-    `${CART_BASE}/checkout/create-session`,
-    { method: "POST", body: await Astro.request.text() },
-    relayCookie(Astro.request),
-  );
-  if (res.ok) {
-    const json = (await res.json()) as { url?: string };
-    if (json.url) return new Response(null, { status: 303, headers: { Location: json.url } });
-  }
-  const text = await res.text();
-  const flag = text.includes("not configured") ? "notconfigured" : "generic";
-  return new Response(null, { status: 303, headers: { Location: `/checkout?error=${flag}` } });
-}
-
 const cookie = relayCookie(Astro.request);
 const cartRes = await forwardJson(`${CART_BASE}/cart`, { method: "GET" }, cookie);
 const cartJson = (await cartRes.json()) as { cart?: Cart };

@@ -206,6 +206,18 @@ if (process.env.STRIPE_SECRET_KEY) {
   log(`stripe secret ${r.ok ? "written" : "FAILED: " + r.status}`);
 }
 
+// --- 5b. demo currencies: switcher only renders when >1 is enabled -------
+{
+  const st = await (await api("/_emdash/api/plugins/dashcommerce/admin/settings")).json();
+  if ((st.enabledCurrencies ?? []).length < 2) {
+    const r = await api("/_emdash/api/plugins/dashcommerce/admin/settings", {
+      method: "POST",
+      body: JSON.stringify({ enabledCurrencies: ["USD", "EUR"] }),
+    });
+    log(`demo currencies ${r.ok ? "enabled (USD, EUR)" : "FAILED: " + r.status}`);
+  }
+}
+
 // --- 6. bilingual sample content: ONE product with a zh translation -----
 const list = await (await api("/_emdash/api/content/products?limit=50&status=published")).json();
 const products = list.data.items.filter((p) => p.locale === "en");

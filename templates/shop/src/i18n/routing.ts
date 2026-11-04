@@ -15,3 +15,11 @@ export function localizePath(path: string, locale: Locale): string {
   if (locale === site.defaultLocale) return bare === "/" ? "/" : bare;
   return bare === "/" ? `/${locale}` : `/${locale}${bare}`;
 }
+
+/** Swap the last path segment (PDP slug) — language switcher across translations. */
+export function replaceLastSegment(path: string, slug: string): string {
+  const segs = path.split("/").filter(Boolean);
+  if (segs.length < 2) return path; // "/", "/zh", "/shop" — no slug to swap
+  segs[segs.length - 1] = slug;
+  return `/${segs.join("/")}`;
+}
