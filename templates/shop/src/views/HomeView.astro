@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard.astro";
 import CategoryNav from "../components/CategoryNav.astro";
 import { t } from "../i18n/ui";
 import { localizePath } from "../i18n/routing";
+import { canonicalUrl, jsonLdOrganization, jsonLdWebSite } from "../lib/seo";
 import type { Locale } from "../config/site";
 import type { Product, TaxTerm } from "../lib/emdash";
 
@@ -22,6 +23,10 @@ const shelf = featured.length > 0 ? featured : products.slice(0, 4);
   description={t("home.hero", locale)}
   {locale}
   path={localizePath("/", locale)}
+  jsonLd={[
+    jsonLdOrganization(t("site.name", locale), canonicalUrl(Astro.site!.toString(), localizePath("/", locale))),
+    jsonLdWebSite(t("site.name", locale), canonicalUrl(Astro.site!.toString(), localizePath("/", locale))),
+  ]}
 >
   <div class="wrap">
     <section class="hero">

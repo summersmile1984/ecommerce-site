@@ -1,6 +1,5 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "astro/config";
-import sitemap from "@astrojs/sitemap";
 import cloudflare from "@astrojs/cloudflare";
 import node from "@astrojs/node";
 import { loadDotEnv } from "./src/lib/dotenv";
@@ -20,14 +19,5 @@ export default defineConfig({
     defaultLocale: "en",
     routing: { prefixDefaultLocale: false },
   },
-  integrations: [
-    sitemap({
-      i18n: { defaultLocale: "en", locales: { en: "en", zh: "zh" } },
-      serialize(item) {
-        // align <loc> with the head canonical form (no trailing slash)
-        item.url = item.url.replace(/(.)\/$/, "$1");
-        return item;
-      },
-    }),
-  ],
+  integrations: [],
 });
