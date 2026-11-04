@@ -1,0 +1,47 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostCard from "../components/PostCard.astro";
+import Pagination from "../components/Pagination.astro";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import type { Post } from "../lib/emdash";
+
+interface Props {
+  locale: Locale;
+  posts: Post[];
+  page: number;
+  pageCount: number;
+  basePath: string;
+  title?: string;
+}
+const { locale, posts, page, pageCount, basePath, title = t("nav.blog", locale) } = Astro.props;
+const path = localizePath(basePath, locale) + (page > 1 ? `/page/${page}` : "");
+---
+<BaseLayout
+  title={page > 1 ? `${title} · ${t("blog.page", locale)} ${page}` : title}
+  description={t("home.latest", locale)}
+  {locale}
+  {path}
+>
+  <div class="wrap">
+    <h1 class="page-title">{title}</h1>
+    {posts.length === 0 && <p class="empty">{t("search.empty", locale)}</p>}
+    {posts.map((p, i) => <PostCard post={p} {locale} index={page === 1 ? i + 1 : undefined} />)}
+    <Pagination {page} {pageCount} {basePath} {locale} />
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  .page-title {
+    font-size: clamp(2.2rem, 6vw, 3.5rem);
+    margin: 0 0 var(--space-4);
+  }
+  .empty {
+    color: var(--muted);
+  }
+</style>

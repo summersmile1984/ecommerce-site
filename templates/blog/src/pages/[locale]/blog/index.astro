@@ -1,0 +1,21 @@
+---
+import BlogListView from "../../../views/BlogListView.astro";
+import { catalog } from "../../../lib/emdash";
+import { pageCount } from "../../../lib/pagination";
+import { site, type Locale } from "../../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = Astro.params.locale as Locale;
+const all = await catalog(locale);
+---
+<BlogListView
+  {locale}
+  posts={all.slice(0, site.pageSize)}
+  page={1}
+  pageCount={pageCount(all.length, site.pageSize)}
+  basePath="/blog"
+/>

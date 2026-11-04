@@ -1,0 +1,24 @@
+---
+import BlogListView from "../../../views/BlogListView.astro";
+import { catalog } from "../../../lib/emdash";
+import { pageCount, pageSlice } from "../../../lib/pagination";
+import { site } from "../../../config/site";
+
+export async function getStaticPaths() {
+  const all = await catalog("en");
+  const pages = pageCount(all.length, site.pageSize);
+  return Array.from({ length: Math.max(0, pages - 1) }, (_, i) => ({
+    params: { n: String(i + 2) },
+  }));
+}
+const { n } = Astro.params;
+const page = Number(n);
+const all = await catalog("en");
+---
+<BlogListView
+  locale="en"
+  posts={pageSlice(all, page, site.pageSize)}
+  {page}
+  pageCount={pageCount(all.length, site.pageSize)}
+  basePath="/blog"
+/>

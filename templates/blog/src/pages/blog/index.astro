@@ -1,0 +1,15 @@
+---
+import BlogListView from "../../views/BlogListView.astro";
+import { catalog } from "../../lib/emdash";
+import { pageCount } from "../../lib/pagination";
+import { site } from "../../config/site";
+
+const all = await catalog("en");
+---
+<BlogListView
+  locale="en"
+  posts={all.slice(0, site.pageSize)}
+  page={1}
+  pageCount={pageCount(all.length, site.pageSize)}
+  basePath="/blog"
+/>

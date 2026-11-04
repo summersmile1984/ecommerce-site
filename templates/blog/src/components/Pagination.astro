@@ -1,0 +1,41 @@
+---
+import { t } from "../i18n/ui";
+import { pagePath } from "../lib/pagination";
+import type { Locale } from "../config/site";
+
+interface Props {
+  page: number;
+  pageCount: number;
+  basePath: string;
+  locale: Locale;
+}
+const { page, pageCount, basePath, locale } = Astro.props;
+---
+{
+  pageCount > 1 && (
+    <nav class="pager" aria-label="Pagination">
+      {page > 1 && <a href={pagePath(page - 1, basePath, locale)}>← {t("blog.prev", locale)}</a>}
+      <span>
+        {t("blog.page", locale)} {page} / {pageCount}
+      </span>
+      {page < pageCount && (
+        <a href={pagePath(page + 1, basePath, locale)}>{t("blog.next", locale)} →</a>
+      )}
+    </nav>
+  )
+}
+<style>
+  .pager {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: center;
+    align-items: center;
+    padding: var(--space-5) 0;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .pager span {
+    color: var(--muted);
+  }
+</style>

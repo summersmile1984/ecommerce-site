@@ -1,0 +1,15 @@
+---
+import HomeView from "../../views/HomeView.astro";
+import { catalog, listTerms } from "../../lib/emdash";
+import { site, type Locale } from "../../config/site";
+
+export async function getStaticPaths() {
+  return site.locales
+    .filter((l) => l !== site.defaultLocale)
+    .map((locale) => ({ params: { locale } }));
+}
+const locale = Astro.params.locale as Locale;
+const posts = (await catalog(locale)).slice(0, site.pageSize);
+const categories = await listTerms("post_category");
+---
+<HomeView {locale} {posts} {categories} />

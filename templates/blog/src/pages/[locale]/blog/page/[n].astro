@@ -1,0 +1,28 @@
+---
+import BlogListView from "../../../../views/BlogListView.astro";
+import { catalog } from "../../../../lib/emdash";
+import { pageCount, pageSlice } from "../../../../lib/pagination";
+import { site, type Locale } from "../../../../config/site";
+
+export async function getStaticPaths() {
+  const all = await catalog(site.defaultLocale);
+  const pages = pageCount(all.length, site.pageSize);
+  const locales = site.locales.filter((l) => l !== site.defaultLocale);
+  return locales.flatMap((locale) =>
+    Array.from({ length: Math.max(0, pages - 1) }, (_, i) => ({
+      params: { locale, n: String(i + 2) },
+    })),
+  );
+}
+const { locale: localeParam, n } = Astro.params;
+const locale = localeParam as Locale;
+const page = Number(n);
+const all = await catalog(locale);
+---
+<BlogListView
+  {locale}
+  posts={pageSlice(all, page, site.pageSize)}
+  {page}
+  pageCount={pageCount(all.length, site.pageSize)}
+  basePath="/blog"
+/>

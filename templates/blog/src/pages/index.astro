@@ -1,7 +1,9 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { t } from "../i18n/ui";
+import HomeView from "../views/HomeView.astro";
+import { catalog, listTerms } from "../lib/emdash";
+import { site } from "../config/site";
+
+const posts = (await catalog("en")).slice(0, site.pageSize);
+const categories = await listTerms("post_category");
 ---
-<BaseLayout title={t("nav.home", "en")} description={t("home.latest", "en")} locale="en" path="/">
-  <h1>{t("site.name", "en")}</h1>
-</BaseLayout>
+<HomeView locale="en" {posts} {categories} />
