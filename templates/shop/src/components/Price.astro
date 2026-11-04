@@ -1,0 +1,17 @@
+---
+import { formatMoney } from "../lib/emdash";
+
+interface Props {
+  minor?: number | null;
+  currency: string;
+  className?: string;
+}
+const { minor, currency, className } = Astro.props;
+---
+<span class:list={["price tabular", className]}>{formatMoney(minor, currency)}</span>
+<style>
+  .price {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+</style>

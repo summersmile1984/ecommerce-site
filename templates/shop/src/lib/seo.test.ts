@@ -4,7 +4,7 @@ import type { Product } from "./emdash";
 
 const product = {
   data: { title: "Mug", sku: "MUG-1", prices: { USD: { amount: 1599 } }, stock_status: "instock" },
-} as Product;
+} as unknown as Product;
 
 describe("shop seo", () => {
   it("canonical absolute", () => {
@@ -23,7 +23,7 @@ describe("shop seo", () => {
   it("outofstock maps availability", () => {
     const p = {
       data: { ...product.data, stock_status: "outofstock" },
-    } as Product;
+    } as unknown as Product;
     const ld = jsonLdProduct({ product: p, url: "https://x", currency: "USD" });
     expect(String((ld.offers as Record<string, unknown>).availability)).toContain("OutOfStock");
   });

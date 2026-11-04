@@ -1,0 +1,39 @@
+---
+export const prerender = true; // ship a real404.html for static hosts
+// Static 404: one file for both locales; language chosen client-side by path.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { t } from "../i18n/ui";
+---
+<BaseLayout title={t("404.title", "en")} description={t("404.title", "en")} locale="en" path="/404" noindex>
+  <div class="wrap" data-404>
+    <section data-lang="en">
+      <h1>{t("404.title", "en")}</h1>
+      <p><a href="/">{t("404.home", "en")}</a></p>
+    </section>
+    <section data-lang="zh" hidden>
+      <h1>{t("404.title", "zh")}</h1>
+      <p><a href="/zh">{t("404.home", "zh")}</a></p>
+    </section>
+  </div>
+</BaseLayout>
+<script>
+  const root = document.querySelector("[data-404]");
+  if (root) {
+    const zh = location.pathname.startsWith("/zh");
+    for (const sec of root.querySelectorAll("section")) {
+      (sec as HTMLElement).hidden = sec.getAttribute("data-lang") !== (zh ? "zh" : "en");
+    }
+  }
+</script>
+<style>
+  .wrap {
+    max-width: var(--measure);
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-3);
+    text-align: center;
+  }
+  h1 {
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    margin: 0 0 var(--space-3);
+  }
+</style>

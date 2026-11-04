@@ -1,0 +1,91 @@
+---
+import { t } from "../i18n/ui";
+import { localizePath, stripLocale } from "../i18n/routing";
+import type { Locale } from "../config/site";
+import ThemeToggle from "./ThemeToggle.astro";
+import LangSwitcher from "./LangSwitcher.astro";
+
+interface Props {
+  locale: Locale;
+  path: string;
+  translations?: Record<string, string>;
+}
+const { locale, path, translations } = Astro.props;
+const bare = stripLocale(path);
+// Cart badge count is optional: populated by the T14 cache middleware locals.
+const cartCount = Astro.locals.cartCount as number | undefined;
+const nav = [
+  { href: localizePath("/", locale), label: t("nav.home", locale), match: bare === "/" },
+  { href: localizePath("/shop", locale), label: t("nav.shop", locale), match: bare === "/shop" || bare.startsWith("/shop/") },
+  { href: localizePath("/cart", locale), label: t("nav.cart", locale), match: bare === "/cart" },
+];
+---
+<header class="site-header">
+  <a class="wordmark" href={localizePath("/", locale)}>{t("site.name", locale)}</a>
+  <nav aria-label="Main">
+    {
+      nav.map((n) => (
+        <a href={n.href} aria-current={n.match ? "page" : undefined}>
+          {n.label}
+          {n.label === t("nav.cart", locale) && cartCount !== undefined && cartCount > 0 && (
+            <span class="badge tabular" data-cart-count>{cartCount}</span>
+          )}
+        </a>
+      ))
+    }
+  </nav>
+  <div class="header-tools">
+    <LangSwitcher locale={locale} path={path} {translations} />
+    <ThemeToggle locale={locale} />
+  </div>
+</header>
+<style>
+  .site-header {
+    display: flex;
+    gap: var(--space-4);
+    align-items: baseline;
+    padding: var(--space-4) var(--space-3);
+    max-width: 64rem;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--hairline);
+    flex-wrap: wrap;
+  }
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  nav {
+    display: flex;
+    gap: var(--space-3);
+    margin-left: auto;
+    flex-wrap: wrap;
+  }
+  nav a {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    color: var(--muted);
+  }
+  nav a[aria-current="page"],
+  nav a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+  }
+  .badge {
+    background: var(--accent);
+    color: var(--paper);
+    border-radius: var(--radius);
+    font-size: 0.7rem;
+    padding: 0 0.35rem;
+    margin-left: 0.35rem;
+  }
+  .header-tools {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+  }
+</style>

@@ -1,3 +1,28 @@
-<html>
-  <body>shop</body>
-</html>
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+---
+<BaseLayout
+  title={t("site.name", "en")}
+  description={t("home.hero", "en")}
+  locale="en"
+  path={localizePath("/", "en")}
+  jsonLd={[]}
+>
+  <div class="wrap">
+    <h1>{t("home.hero", "en")}</h1>
+  </div>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+  }
+  h1 {
+    font-size: clamp(3rem, 10vw, 6rem);
+    margin: 0;
+    letter-spacing: -0.02em;
+  }
+</style>

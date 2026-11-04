@@ -1,0 +1,34 @@
+---
+import { t } from "../i18n/ui";
+import type { Locale } from "../config/site";
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+---
+<button class="ghost" aria-label={t("nav.theme", locale)} data-theme-toggle>
+  <span aria-hidden="true">◐</span>
+</button>
+<script>
+  document.querySelector("[data-theme-toggle]")?.addEventListener("click", () => {
+    const root = document.documentElement;
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    localStorage.setItem("theme", next);
+  });
+</script>
+<style>
+  .ghost {
+    background: none;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    width: 2rem;
+    height: 2rem;
+    color: var(--muted);
+  }
+  .ghost:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+</style>
