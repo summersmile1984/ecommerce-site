@@ -42,7 +42,13 @@ let config = readFileSync(configPath, "utf8");
 if (!config.includes('locales: ["en", "zh"]')) {
   config = config.replace(
     "export default defineConfig({",
-    `export default defineConfig({\n  i18n: { locales: ["en", "zh"], defaultLocale: "en" },`,
+    `export default defineConfig({\n  i18n: { locales: ["en", "zh"], defaultLocale: "en", fallback: { zh: "en" } },`,
+  );
+} else if (!config.includes("fallback: { zh")) {
+  // locales line already present from an older run — add the fallback chain (spec §6)
+  config = config.replace(
+    /i18n: \{ locales: \["en", "zh"\], defaultLocale: "en" \}/,
+    'i18n: { locales: ["en", "zh"], defaultLocale: "en", fallback: { zh: "en" } }',
   );
 }
 if (!config.includes("fonts: false")) {
