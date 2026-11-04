@@ -50,7 +50,7 @@ templates/shop/   完全自包含 Astro 项目（SSR on CF Worker）
 | `/rss.xml`（en）、`/zh/rss.xml` | 每语言一份 feed |
 | sitemap-index、robots.txt | @astrojs/sitemap + i18n alternates |
 
-功能：客户端全文搜索（构建期产 `search-index.json` + 前端 mini 搜索，不依赖后端）、分类/标签、阅读时长、相关文章、暗色模式（system+手动，CSS 变量）、增量构建兼容（manifest diff，沿用已验证逻辑）。
+功能：客户端全文搜索（构建期产 `search-index.json` + 前端 mini 搜索，不依赖后端）、分类/标签、阅读时长、相关文章、暗色模式（system+手动，CSS 变量）、**publish→`SSG_BUILD_HOOK` 自动触发构建**（已验证）；构建为 Astro 全量渲染（内容站秒级，无页级增量），manifest 降级为**数据变更检测**（sitemap lastmod + 构建期变更摘要）。
 
 ### 4.2 设计方向：Editorial journal
 
@@ -105,7 +105,7 @@ templates/shop/   完全自包含 Astro 项目（SSR on CF Worker）
 内容：SSG 构建期 / SSR 请求期 fetch content API ?locale={当前}
       缺译回退：emdash getLocaleRank + i18n.fallback（后端配置，脚本负责写入）
       语言切换/hreflang：GET /content/{col}/{id}/translations（已验证存在）
-sitemap：@astrojs/sitemap i18n:{defaultLocale, locales:{en:'en',zh:'zh-CN'}} → hreflang 自动
+sitemap：@astrojs/sitemap i18n:{defaultLocale:'en', locales:{en:'en', zh:'zh'}} → hreflang 自动（zh 用泛中文码，与内容 locale 一致）
 后端前提：astro.config i18n 段（emdash 直接读 astroConfig.i18n，源码已确认）
 ```
 
@@ -127,7 +127,7 @@ sitemap：@astrojs/sitemap i18n:{defaultLocale, locales:{en:'en',zh:'zh-CN'}} �
 ## 8. 验证计划
 
 1. 脚本对两个后端各跑一遍（幂等重跑无损）
-2. blog：`/` 与 `/zh/*` 页面 200、hreflang/x-default 标签、sitemap 含 alternates、RSS 双语、缺译文章在 /zh 回退显示、增量构建 generated=0 空跑
+2. blog：`/` 与 `/zh/*` 页面 200、hreflang/x-default 标签、sitemap 含 alternates、RSS 双语、缺译文章在 /zh 回退显示、publish→build-hook 触发日志、manifest lastmod 反映 updatedAt
 3. shop：双语 PDP、加购→购物车→Stripe test 结账跳转→thank-you 轮询、评价提交、purge 后 PDP MISS 重渲染
 4. SEO 逐条 curl 清单（JSON-LD 可解析、canonical 自指、robots/sitemap 200）
 5. 视觉自查：360/768/1280 三档、键盘 focus、暗色切换、无紫渐变/胶囊/玻璃；截图交用户过目
