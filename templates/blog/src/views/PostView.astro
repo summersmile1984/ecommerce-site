@@ -1,0 +1,203 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PortableText from "../components/PortableText.astro";
+import PostCard from "../components/PostCard.astro";
+import { t } from "../i18n/ui";
+import { localizePath } from "../i18n/routing";
+import { jsonLdBlogPosting, jsonLdBreadcrumb, canonicalUrl } from "../lib/seo";
+import { readingTimeMinutes } from "../lib/reading-time";
+import { extractHeadings } from "../lib/toc";
+import type { Locale } from "../config/site";
+import type { Post } from "../lib/emdash";
+
+interface Props {
+  post: Post;
+  locale: Locale;
+  translations?: Record<string, string>;
+  prev?: Post;
+  next?: Post;
+  related: Post[];
+}
+const { post, locale, translations, prev, next, related } = Astro.props;
+const path = localizePath(`/blog/${post.slug}`, locale);
+const url = canonicalUrl(Astro.site!.toString(), path);
+const plain = JSON.stringify(post.data.body ?? "");
+const minutes = readingTimeMinutes(plain, locale);
+const headings = extractHeadings(post.data.body as never);
+const crumbs = [
+  { name: t("nav.blog", locale), url: canonicalUrl(Astro.site!.toString(), localizePath("/blog", locale)) },
+  { name: post.data.title, url },
+];
+const pairs = [
+  { locale, hreflang: locale, href: url },
+  ...Object.entries(translations ?? {}).map(([l, slug]) => ({
+    locale: l,
+    hreflang: l,
+    href: canonicalUrl(Astro.site!.toString(), localizePath(`/blog/${slug}`, l as Locale)),
+  })),
+];
+---
+<BaseLayout
+  title={post.data.title}
+  description={post.data.excerpt ?? ""}
+  {locale}
+  {path}
+  alternates={pairs}
+  ogType="article"
+  jsonLd={[
+    jsonLdBlogPosting({ post, url, siteName: t("site.name", locale), locale }),
+    jsonLdBreadcrumb(crumbs),
+  ]}
+  {translations}
+>
+  <article class="wrap">
+    <header class="post-head">
+      <p class="meta">
+        <time datetime={post.publishedAt}>{post.publishedAt.slice(0, 10)}</time>
+        · {minutes} {t("blog.readingTime", locale)}
+      </p>
+      <h1>{post.data.title}</h1>
+      {
+        post.locale !== locale && (
+          <p class="fallback-note">EN · zh translation unavailable</p>
+        )
+      }
+    </header>
+    {
+      headings.length > 1 && (
+        <aside class="toc">
+          <p class="toc-title">{t("blog.toc", locale)}</p>
+          <ol>
+            {headings.map((h) => (
+              <li class={`d${h.depth}`}>
+                <a href={`#${h.id}`}>{h.text}</a>
+              </li>
+            ))}
+          </ol>
+        </aside>
+      )
+    }
+    <PortableText body={post.data.body} />
+    <nav class="post-nav">
+      {
+        prev && (
+          <a href={localizePath(`/blog/${prev.slug}`, locale)}>
+            ← {t("blog.prevPost", locale)}
+            <br />
+            <b>{prev.data.title}</b>
+          </a>
+        )
+      }
+      {
+        next && (
+          <a class="next" href={localizePath(`/blog/${next.slug}`, locale)}>
+            {t("blog.nextPost", locale)} →
+            <br />
+            <b>{next.data.title}</b>
+          </a>
+        )
+      }
+    </nav>
+    {
+      related.length > 0 && (
+        <section class="related">
+          <h2>{t("blog.related", locale)}</h2>
+          {related.map((p) => (
+            <PostCard post={p} {locale} />
+          ))}
+        </section>
+      )
+    }
+  </article>
+</BaseLayout>
+<style>
+  .wrap {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-3);
+    position: relative;
+  }
+  .post-head h1 {
+    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    margin: var(--space-2) 0 var(--space-4);
+    max-width: 20ch;
+  }
+  .meta {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .fallback-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+    border-left: 2px solid var(--accent);
+    padding-left: 0.5rem;
+  }
+  .toc {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    padding: var(--space-3);
+    margin-bottom: var(--space-5);
+    max-width: 24rem;
+  }
+  .toc ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.35rem;
+  }
+  .toc .d3 {
+    padding-left: 1rem;
+  }
+  .toc a {
+    text-decoration: none;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .toc a:hover {
+    color: var(--accent);
+  }
+  .toc-title {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 var(--space-2);
+  }
+  @media (min-width: 60rem) {
+    .toc {
+      position: absolute;
+      left: calc(100% + 2rem);
+      top: var(--space-5);
+    }
+  }
+  .post-nav {
+    display: flex;
+    gap: var(--space-4);
+    justify-content: space-between;
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--hairline);
+  }
+  .post-nav a {
+    text-decoration: none;
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-width: 45%;
+  }
+  .post-nav a:hover {
+    color: var(--accent);
+  }
+  .post-nav .next {
+    text-align: right;
+  }
+  .post-nav b {
+    color: var(--ink);
+  }
+  .related {
+    margin-top: var(--space-6);
+  }
+</style>

@@ -1,0 +1,37 @@
+---
+import PostView from "../../../views/PostView.astro";
+import { catalog, translationsOf } from "../../../lib/emdash";
+import { site, type Locale } from "../../../config/site";
+
+export async function getStaticPaths() {
+  const locales = site.locales.filter((l) => l !== site.defaultLocale);
+  const byLocale = new Map<Locale, Awaited<ReturnType<typeof catalog>>>();
+  for (const l of locales) byLocale.set(l, await catalog(l));
+  return locales.flatMap((locale) => {
+    const all = byLocale.get(locale)!;
+    return all.map((post, i) => ({
+      params: { locale, slug: post.slug },
+      props: {
+        locale,
+        post,
+        prev: all[i + 1],
+        next: all[i - 1],
+        related: all
+          .filter(
+            (p) =>
+              p.slug !== post.slug &&
+              (p.terms?.post_category ?? []).some((c) =>
+                (post.terms?.post_category ?? []).some((x) => x.slug === c.slug),
+              ),
+          )
+          .slice(0, 3),
+      },
+    }));
+  });
+}
+const { slug } = Astro.params;
+const { locale, post, prev, next, related } = Astro.props;
+const tlist = await translationsOf(post.id);
+const translations = Object.fromEntries(tlist.map((x) => [x.locale, x.slug]));
+---
+<PostView post={post} {locale} {translations} {prev} {next} {related} />

@@ -1,0 +1,30 @@
+---
+import PostView from "../../views/PostView.astro";
+import { catalog, translationsOf } from "../../lib/emdash";
+
+export async function getStaticPaths() {
+  const all = await catalog("en");
+  return all.map((post, i) => ({
+    params: { slug: post.slug },
+    props: {
+      post,
+      prev: all[i + 1],
+      next: all[i - 1],
+      related: all
+        .filter(
+          (p) =>
+            p.slug !== post.slug &&
+            (p.terms?.post_category ?? []).some((c) =>
+              (post.terms?.post_category ?? []).some((x) => x.slug === c.slug),
+            ),
+        )
+        .slice(0, 3),
+    },
+  }));
+}
+const { slug } = Astro.params;
+const { post, prev, next, related } = Astro.props;
+const tlist = await translationsOf(post.id);
+const translations = Object.fromEntries(tlist.map((x) => [x.locale, x.slug]));
+---
+<PostView post={post} locale="en" {translations} {prev} {next} {related} />
