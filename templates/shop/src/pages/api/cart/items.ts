@@ -33,7 +33,9 @@ const POST: APIRoute = async ({ request }) => {
     Location: res.ok ? back : withError(back),
   });
   for (const [k, v] of res.headers) if (k === "set-cookie") headers.append("set-cookie", v);
-  return new Response(null, { status: res.ok ? 303 : res.status, headers });
+  // Always 303 — browsers only follow Location on 3xx (an upstream 4xx left
+  // them on a blank error page instead of the cart banner).
+  return new Response(null, { status: 303, headers });
 };
 
 export { POST };

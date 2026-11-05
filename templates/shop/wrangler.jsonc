@@ -11,8 +11,9 @@
   //   EMDASH_URL   — backend origin, REQUIRED for every SSR render
   //   PAT          — backend PAT, REQUIRED for every SSR render (catalog)
   //   PURGE_SECRET — shared secret for POST /api/purge (backend → frontend)
-  // SITE_URL is BUILD-time (astro.config bakes canonical/sitemap); the worker
-  // also reads it at runtime for canonical URLs — set it to the real origin.
+  // SITE_URL is BUILD-time: astro.config bakes canonical/sitemap, and the
+  // prerendered robots.txt/sitemap.xml read it while building. Set it in .env
+  // for the build; it is NOT needed as a runtime var.
   // Secrets go through `wrangler secret put` (PAT, PURGE_SECRET).
   "vars": {
     "EMDASH_URL": "https://your-backend.example.com",

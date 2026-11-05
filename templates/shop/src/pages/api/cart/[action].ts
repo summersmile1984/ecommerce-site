@@ -55,5 +55,8 @@ export const POST: APIRoute = async ({ request, params, url }) => {
       : withError(safeReturn(String(fields.returnTo ?? ""), "/cart")),
   });
   for (const [k, v] of res.headers) if (k === "set-cookie") headers.append("set-cookie", v);
-  return new Response(null, { status: res.ok ? 303 : res.status, headers });
+  // Form posts ALWAYS redirect (303): browsers only follow Location on 3xx,
+  // so passing an upstream 4xx through left them on a blank error page
+  // instead of the cart banner the Location points at.
+  return new Response(null, { status: 303, headers });
 };

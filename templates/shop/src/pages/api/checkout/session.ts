@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { forwardJson, relayCookie, parseSessionResponse, CART_BASE } from "../../../lib/relay";
+import { forwardJson, relayCookie, parseSessionResponse, safeReturn, CART_BASE } from "../../../lib/relay";
 
 /**
  * POST /api/checkout/session → backend checkout/create-session.
@@ -27,7 +27,9 @@ export const POST: APIRoute = async ({ request }) => {
   if (wantsHtml) {
     const flag = parsed.error.includes("not configured") ? "notconfigured" : "generic";
     const sent = formReturn ?? "";
-    const target = sent.startsWith("/") && !sent.startsWith("//") ? sent : "/checkout";
+    // Same-origin only — safeReturn also rejects "//host" and backslash
+    // forms ("/\host" URL-resolves to another origin).
+    const target = safeReturn(sent, "/checkout");
     const sep = target.includes("?") ? "&" : "?";
     return new Response(null, { status: 303, headers: { Location: `${target}${sep}error=${flag}` } });
   }
