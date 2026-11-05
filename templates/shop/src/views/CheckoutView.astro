@@ -77,6 +77,11 @@ const { locale, cart, mode, error } = Astro.props;
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: var(--space-5);
   }
+  @media (max-width: 52rem) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
   table {
     width: 100%;
     border-collapse: collapse;
