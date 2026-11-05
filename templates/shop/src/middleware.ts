@@ -4,8 +4,8 @@ import { ensureUiCopy } from "./lib/copy";
 
 /**
  * SSR page cache (S14): serve HITs from the store, remember MISSes that
- * pass the policy. Header cart count for the nav badge (best-effort: only
- * when the cart cookie exists — avoids a backend round-trip on every HIT).
+ * pass the policy. Also primes the backend copy overlay before rendering
+ * (t() reads a sync snapshot; HIT responses skip the fetch entirely).
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const { request, url } = context;

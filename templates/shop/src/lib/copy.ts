@@ -64,7 +64,11 @@ export async function ensureUiCopy(): Promise<void> {
     );
     copyCache.set(COPY_CACHE_KEY, Object.fromEntries(pairs));
   } catch {
-    /* backend down / collection absent: t() keeps serving the template */
+    /* Backend down / collection absent: remember the failure for one TTL so a
+       missing ui_copy collection doesn't cost two failed fetches on EVERY
+       request (t() serves the template dictionary meanwhile; a copy edit
+       lands within one TTL of the backend recovering). */
+    copyCache.set(COPY_CACHE_KEY, {});
   }
 }
 

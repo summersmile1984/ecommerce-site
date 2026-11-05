@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { formatMoney } from "../lib/emdash";
+import { rateLabel, ratePriceText } from "../lib/rates";
 import type { Cart, ShippingRate } from "../lib/cart-types";
 import { localizePath } from "../i18n/routing";
 import { t } from "../i18n/ui";
@@ -27,7 +28,7 @@ const hasAddress = !!cart?.shippingAddress;
         </p>
         {currencies.length > 1 && (
           <form method="post" action="/api/cart/currency" class="panel currency">
-            <p class="label">Currency</p>
+            <p class="label">{t("cart.currency", locale)}</p>
             <select name="currency">
               {currencies.map((c) => (
                 <option value={c} selected={cart?.currency === c}>{c}</option>
@@ -146,7 +147,7 @@ const hasAddress = !!cart?.shippingAddress;
                     value={r.methodId ?? ""}
                     checked={cart.shippingMethod?.id === r.methodId}
                   />
-                  {r.label} · {formatMoney(r.amount, r.amount?.currency ?? cart.currency)}
+                  {rateLabel(r)} · {ratePriceText(r, cart.currency)}
                 </label>
               ))}
               <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />

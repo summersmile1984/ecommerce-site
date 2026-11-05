@@ -2,6 +2,8 @@
 import OrdersLookupView from "../../views/OrdersLookupView.astro";
 import { forwardJson, lookupPath } from "../../lib/relay";
 import { summarizeOrders, type OrderSummary } from "../../lib/orders";
+import { t } from "../../i18n/ui";
+import { site } from "../../config/site";
 
 
 let email = "";
@@ -12,14 +14,14 @@ if (Astro.request.method === "POST") {
   const form = new URLSearchParams(await Astro.request.text());
   email = (form.get("email") ?? "").trim();
   if (!email.includes("@")) {
-    error = "valid email required";
+    error = t("orders.invalidEmail", site.defaultLocale);
   } else {
     const res = await forwardJson(lookupPath(email), { method: "GET" });
     if (res.ok) {
       const json = (await res.json()) as { items?: unknown };
       orders = summarizeOrders(json);
     } else {
-      error = `lookup failed (${res.status})`;
+      error = t("orders.lookupFailed", site.defaultLocale).replace("{status}", String(res.status));
     }
   }
 }

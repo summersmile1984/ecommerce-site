@@ -23,3 +23,19 @@ export function replaceLastSegment(path: string, slug: string): string {
   segs[segs.length - 1] = slug;
   return `/${segs.join("/")}`;
 }
+
+/**
+ * Language-switcher target: the same page under the OTHER locale.
+ * PDPs swap in the translated slug; the target locale prefix is ALWAYS
+ * re-applied — prefixDefaultLocale:false means "/shop/<slug>-zh" is a 404
+ * (the zh route lives under "/zh/…").
+ */
+export function switcherTarget(
+  path: string,
+  other: Locale,
+  translations?: Record<string, string>,
+): string {
+  const bare = stripLocale(path);
+  const swapped = translations?.[other] ? replaceLastSegment(bare, translations[other]) : bare;
+  return localizePath(swapped, other);
+}

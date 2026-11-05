@@ -3,7 +3,8 @@ import CheckoutView from "../views/CheckoutView.astro";
 import { forwardJson, relayCookie, CART_BASE } from "../lib/relay";
 import type { Cart } from "../lib/cart-types";
 
-// POST = form submit: run create-session here so browsers get redirects, not JSON.
+// The checkout FORM posts to /api/checkout/session (the relay) — this page
+// only renders the summary; create-session runs there so browsers get 303s.
 const cookie = relayCookie(Astro.request);
 const cartRes = await forwardJson(`${CART_BASE}/cart`, { method: "GET" }, cookie);
 const cartJson = (await cartRes.json()) as { cart?: Cart };

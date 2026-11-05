@@ -12,11 +12,13 @@ export const POST: APIRoute = async ({ request }) => {
   const body = (await request.json().catch(() => ({}))) as { email?: string };
   const email = (body.email ?? "").trim();
   if (!email || !email.includes("@")) {
-    return new Response(JSON.stringify({ error: "valid email required" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "invalid_email" }), { status: 400 });
   }
   const res = await forwardJson(lookupPath(email), { method: "GET" });
   if (!res.ok) {
-    return new Response(JSON.stringify({ error: `lookup failed (${res.status})` }), { status: res.status });
+    return new Response(JSON.stringify({ error: "lookup_failed", status: res.status }), {
+      status: res.status,
+    });
   }
   const orders = summarizeOrders((await res.json()) as { items?: unknown });
   return new Response(JSON.stringify({ orders }), {

@@ -24,6 +24,22 @@ export function relayCookie(request: Request): string | null {
   return hit ?? null;
 }
 
+/**
+ * Same-origin redirect target for form posts. Rejects absolute URLs,
+ * protocol-relative "//host" and backslash forms ("/\host" — new URL()
+ * resolves those to ANOTHER origin).
+ */
+export function safeReturn(raw: string | null | undefined, fallback: string): string {
+  if (!raw || !raw.startsWith("/")) return fallback;
+  if (raw.startsWith("//") || raw.includes("\\")) return fallback;
+  return raw;
+}
+
+/** Append ?error=1 to a same-origin path without clobbering an existing query. */
+export function withError(path: string): string {
+  return `${path}${path.includes("?") ? "&" : "?"}error=1`;
+}
+
 /** /api/cart/<x> → /_emdash/api/plugins/dashcommerce/cart/<x> (+query, ? normalized). */
 export function buildUpstreamUrl(endpointPath: string, search: string): string {
   const rest = endpointPath.slice("/api/cart".length);

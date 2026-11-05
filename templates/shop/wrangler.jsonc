@@ -2,16 +2,20 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "shop-template",
   // The @astrojs/cloudflare adapter supplies `main` (its server entrypoint),
-  // `assets`, and the SESSION KV binding automatically when building — this
-  // file only names the Worker and pins the compat date. Deploy against the
-  // generated `dist/server/wrangler.json` after `DEPLOY_TARGET=cloudflare
-  // npx astro build` (see README → Deploy to Cloudflare).
+  // `assets` and the SESSION KV binding at build time — this file only names
+  // the Worker and pins the compat date. Deploy against the generated
+  // `dist/server/wrangler.json` (README → Deploy to Cloudflare).
   "compatibility_date": "2026-04-15",
   "compatibility_flags": ["nodejs_compat"],
-  // Runtime secrets (not here — `wrangler secret put` after deploy):
-  //   EMDASH_URL / EMDASH_PAT — backend origin (only if proxying admin)
-  // Site-level env at build time: SITE_URL (canonical origin for sitemap/SEO).
+  // RUNTIME vars (the worker reads them via process.env under nodejs_compat):
+  //   EMDASH_URL   — backend origin, REQUIRED for every SSR render
+  //   PAT          — backend PAT, REQUIRED for every SSR render (catalog)
+  //   PURGE_SECRET — shared secret for POST /api/purge (backend → frontend)
+  // SITE_URL is BUILD-time (astro.config bakes canonical/sitemap); the worker
+  // also reads it at runtime for canonical URLs — set it to the real origin.
+  // Secrets go through `wrangler secret put` (PAT, PURGE_SECRET).
   "vars": {
-    "SITE_URL": "https://example.com"
+    "EMDASH_URL": "https://your-backend.example.com",
+    "SITE_URL": "https://your-storefront.example.com"
   }
 }

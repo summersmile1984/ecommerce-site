@@ -11,7 +11,8 @@ export interface CartLine {
 export interface ShippingRate {
   methodId?: string;
   label?: string;
-  amount?: { currency?: string; amount?: number };
+  /** Money object upstream ({currency, amount}); a bare number is tolerated. */
+  amount?: { currency?: string; amount?: number } | number;
 }
 export interface Cart {
   currency: string;

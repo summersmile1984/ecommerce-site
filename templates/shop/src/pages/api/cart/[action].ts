@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { forwardJson, relayCookie, buildUpstreamUrl } from "../../../lib/relay";
-import { readBody, safeReturn } from "./items";
+import { forwardJson, relayCookie, buildUpstreamUrl, safeReturn, withError } from "../../../lib/relay";
+import { readBody } from "./items";
 
 const ACTIONS: Record<string, "POST" | "PATCH" | "DELETE"> = {
   coupon: "POST",
@@ -48,7 +48,11 @@ export const POST: APIRoute = async ({ request, params, url }) => {
     });
   }
   const headers = new Headers({
-    Location: res.ok ? safeReturn(String(fields.returnTo ?? ""), "/cart") : "/cart?error=1",
+    // Keep the caller's locale on failure too: the forms post a localized
+    // returnTo ("/zh/cart"), so the error lands on the same page, not en.
+    Location: res.ok
+      ? safeReturn(String(fields.returnTo ?? ""), "/cart")
+      : withError(safeReturn(String(fields.returnTo ?? ""), "/cart")),
   });
   for (const [k, v] of res.headers) if (k === "set-cookie") headers.append("set-cookie", v);
   return new Response(null, { status: res.ok ? 303 : res.status, headers });

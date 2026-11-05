@@ -150,8 +150,16 @@ export async function catalogProducts(locale: Locale): Promise<Product[]> {
   return enriched;
 }
 
+// Settings are stable per deploy — cache them like the catalog so a cart
+// render doesn't spend a backend round-trip on them (purge clears it too).
+const settingsCache = createTtlCache<Settings>(60_000);
+
 export async function getSettings(): Promise<Settings> {
-  return api<Settings>(`/_emdash/api/plugins/dashcommerce/admin/settings`);
+  const cached = settingsCache.get("settings");
+  if (cached) return cached;
+  const settings = await api<Settings>(`/_emdash/api/plugins/dashcommerce/admin/settings`);
+  settingsCache.set("settings", settings);
+  return settings;
 }
 
 const ZERO_DECIMAL: Record<string, true> = { JPY: true, KRW: true, VND: true, CLP: true };
@@ -187,9 +195,10 @@ export function priceOf(
 }
 
 /** Called by /api/purge so a backend save becomes visible on the next render. */
-export function purgeCatalogCaches(): number {
-  const n = catalogCache.size() + termsMemo.size();
+export function purgeBackendCaches(): number {
+  const n = catalogCache.size() + termsMemo.size() + settingsCache.size();
   catalogCache.clear();
   termsMemo.clear();
+  settingsCache.clear();
   return n;
 }

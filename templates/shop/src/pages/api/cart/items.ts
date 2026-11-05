@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { forwardJson, relayCookie, buildUpstreamUrl } from "../../../lib/relay";
+import { forwardJson, relayCookie, buildUpstreamUrl, safeReturn, withError } from "../../../lib/relay";
 
 /** Parse either form-urlencoded or JSON bodies into a plain object. */
 export async function readBody(request: Request): Promise<Record<string, unknown>> {
@@ -15,11 +15,6 @@ export async function readBody(request: Request): Promise<Record<string, unknown
   }
 }
 
-/** Same-origin redirect target (never trust absolute URLs from forms). */
-export function safeReturn(raw: string | null | undefined, fallback: string): string {
-  return raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
-}
-
 const POST: APIRoute = async ({ request }) => {
   const fields = await readBody(request);
   const body = JSON.stringify({
@@ -31,8 +26,11 @@ const POST: APIRoute = async ({ request }) => {
     { method: "POST", body },
     relayCookie(request),
   );
+  // Keep the caller's locale on failure: forms post a localized returnTo
+  // ("/zh/cart"), so the error lands on the same page.
+  const back = safeReturn(String(fields.returnTo ?? ""), "/cart");
   const headers = new Headers({
-    Location: res.ok ? safeReturn(String(fields.returnTo ?? ""), "/cart") : "/cart?error=1",
+    Location: res.ok ? back : withError(back),
   });
   for (const [k, v] of res.headers) if (k === "set-cookie") headers.append("set-cookie", v);
   return new Response(null, { status: res.ok ? 303 : res.status, headers });

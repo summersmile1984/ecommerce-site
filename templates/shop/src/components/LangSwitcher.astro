@@ -1,6 +1,6 @@
 ---
 import { t } from "../i18n/ui";
-import { localizePath, stripLocale, replaceLastSegment } from "../i18n/routing";
+import { switcherTarget } from "../i18n/routing";
 import { site, type Locale } from "../config/site";
 
 interface Props {
@@ -10,11 +10,10 @@ interface Props {
 }
 const { locale, path, translations } = Astro.props;
 const other: Locale = locale === site.defaultLocale ? "zh" : "en";
-// Post pages pass translation slugs (same content, other language);
-// other pages switch to the same path under the other locale prefix.
-const target = translations?.[other]
-  ? replaceLastSegment(stripLocale(path), translations[other])
-  : localizePath(stripLocale(path), other);
+// Post pages pass translation slugs (same content, other language); other
+// pages switch to the same path under the other locale prefix. The target
+// prefix is re-applied inside switcherTarget (a bare /shop/<slug>-zh 404s).
+const target = switcherTarget(path, other, translations);
 ---
 <a class="lang" href={target} hreflang={other}>{t("lang.switch", locale)}</a>
 <style>

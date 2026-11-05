@@ -451,10 +451,16 @@ writeFileSync("backend-info.json", JSON.stringify({ baseUrl, pat }, null, 2));
 // step when a local .env exists (README quick start fills it from output).
 if (existsSync(".env")) {
   const envText = readFileSync(".env", "utf8");
-  const nextEnv = envText.replace(/^PAT=.*$/m, `PAT=${pat}`);
-  if (nextEnv !== envText) {
-    writeFileSync(".env", nextEnv);
-    log(".env PAT synced to the rotated token");
+  if (/^PAT=/m.test(envText)) {
+    const nextEnv = envText.replace(/^PAT=.*$/m, `PAT=${pat}`);
+    if (nextEnv !== envText) {
+      writeFileSync(".env", nextEnv);
+      log(".env PAT synced to the rotated token");
+    }
+  } else {
+    log(
+      "WARN: .env has no PAT= line — the rotated PAT exists only in backend-info.json (or your shell export); update it or SSR requests will 401",
+    );
   }
 }
 console.log(`
