@@ -1,6 +1,7 @@
 ---
 import { priceOf, type Product } from "../lib/emdash";
 import { localizePath } from "../i18n/routing";
+import { productTypeLabel } from "../i18n/ui";
 import type { Locale } from "../config/site";
 import Price from "./Price.astro";
 
@@ -24,7 +25,7 @@ const kind = product.data.type ?? "simple";
     <p class="meta">
       <Price minor={price?.amount ?? null} currency={price?.currency ?? currency} />
       <span class:list={["dot", out && "out"]}></span>
-      <span class="kind">{kind}</span>
+      <span class="kind">{productTypeLabel(kind, locale)}</span>
       {zh && <span class="fallback">EN</span>}
     </p>
   </div>

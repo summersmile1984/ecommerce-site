@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { t, dictionaries } from "./ui";
+import { t, dictionaries, productTypeLabel } from "./ui";
 import { localeFromPath, localizePath, stripLocale } from "./routing";
 
 describe("dictionary parity", () => {
@@ -11,6 +11,11 @@ describe("dictionary parity", () => {
   it("t returns per-locale strings", () => {
     expect(t("nav.shop", "en")).toBe("Shop");
     expect(t("nav.shop", "zh")).toBe("商店");
+  });
+  it("localizes known product types and keeps merchant-defined ones raw", () => {
+    expect(productTypeLabel("subscription", "zh")).toBe("订阅");
+    expect(productTypeLabel("simple", "en")).toBe("Simple");
+    expect(productTypeLabel("bundle", "zh")).toBe("bundle");
   });
 });
 

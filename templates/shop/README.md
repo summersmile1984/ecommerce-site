@@ -30,6 +30,7 @@ npm run dev                                           # http://localhost:4322
 | `npm run preview` | 预览构建产物 :4323 |
 | `npm run check` / `npm test` | `astro check` / vitest（含 live 测试，读 `.env`） |
 | `npm run seo-check -- --preview http://localhost:4323` | SEO 门禁（**需先 build + preview**，SSR 页面运行时渲染） |
+| `npm run stripe-e2e` | 真实 Stripe 结账重定向 e2e（需后端配好 `stripeSecretKey`；无密钥时 **SKIP** 退出码2；`--provider mock` 跑同一条链路对 mock 网关） |
 | `npm run new-backend -- --dir <path> [--port 4325] [--up <url>]` | 后端 provisioning（幂等） |
 
 ## Configuration
@@ -76,6 +77,7 @@ npm run new-backend -- --dir ./backend --port 4325
 - embedded 模式本模板不支持（后端 `checkout/mode` 会返回，页面给出提示）
 - 测试卡：`4242 4242 4242 4242`（Stripe test mode）
 - **本地 e2e（无 Stripe 密钥）**：init-backend 会注册 credential-free 的 mock 网关（`paymentProvider="mock"` 选用；其免凭据 fallback 是对克隆 core `credentials.ts` 的带锚点补丁，2e 段，锚点漂移会 WARN）。启用后 `create-session` 直接 303 到 `/thank-you/<draft>?mock=1`，订单停在 `pending`（等网关 webhook）——用于验证重定向链路；`{"paymentProvider":"stripe"}` 一键恢复默认。
+- **真实 Stripe 链路**：`npm run stripe-e2e` 驱动 加购→地址→运方式→create-session，断言 303 落在 `checkout.stripe.com`；后端未配 `stripeSecretKey` 时输出 SKIP（退出码2，非失败）。`--provider mock` 用同一条链路对 mock 网关断言 thank-you 重定向。
 
 ## Deploy（CF Worker）
 

@@ -11,6 +11,7 @@
     "check": "astro check",
     "test": "vitest run",
     "seo-check": "node scripts/seo-check.mjs",
+    "stripe-e2e": "node scripts/stripe-e2e.mjs",
     "new-backend": "node scripts/init-backend.mjs"
   },
   "engines": {

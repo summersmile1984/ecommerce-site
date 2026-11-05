@@ -72,6 +72,12 @@ const en = {
   "lang.switch": "中文",
   "tax.category": "Category",
   "tax.all": "All types",
+  "type.simple": "Simple",
+  "type.variable": "Variable",
+  "type.grouped": "Grouped",
+  "type.external": "External",
+  "type.subscription": "Subscription",
+  "type.digital": "Digital",
   "pager.prev": "Prev",
   "pager.next": "Next",
   "error.retry": "Something went wrong. Retry.",
@@ -150,6 +156,12 @@ const zh: Record<MessageKey, string> = {
   "lang.switch": "English",
   "tax.category": "分类",
   "tax.all": "全部类型",
+  "type.simple": "单一规格",
+  "type.variable": "多变体",
+  "type.grouped": "组合商品",
+  "type.external": "外部链接",
+  "type.subscription": "订阅",
+  "type.digital": "数字商品",
   "pager.prev": "上一页",
   "pager.next": "下一页",
   "error.retry": "出错了，请重试。",
@@ -158,6 +170,15 @@ const zh: Record<MessageKey, string> = {
 export const dictionaries: Record<Locale, Record<MessageKey, string>> = { en, zh };
 
 export function t(key: MessageKey, locale: Locale): string {
-  // Backend ui-copy override (per locale) wins; absent → template dictionary.
+  // Backend ui_copy override (per locale) wins; absent → template dictionary.
   return uiCopyOverlay()[locale]?.[key] ?? dictionaries[locale][key];
+}
+
+/** Product types are a technical enum — the template localizes the known
+ *  ones; merchant-defined types keep their raw value. */
+const TYPE_KEYS = new Set(["simple", "variable", "grouped", "external", "subscription", "digital"]);
+
+export function productTypeLabel(kind: string, locale: Locale): string {
+  if (!TYPE_KEYS.has(kind)) return kind;
+  return dictionaries[locale][`type.${kind}` as MessageKey];
 }
