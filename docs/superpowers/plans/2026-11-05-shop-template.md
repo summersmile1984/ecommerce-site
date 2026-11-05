@@ -1,5 +1,9 @@
 # Shop 模板 Implementation Plan
 
+> **状态：已完成（2026-11-06）** · T1–T16 全部完成（步骤已勾选）。实现/验证证据、裁决与遗留处置见台账
+> `.superpowers/sdd/2026-11-05-shop-template/progress.md`。评审修复与终验提交区间 `28096af..223cbf4`
+> （评审修复 `0e1902d` · 移动端折叠 `9a27688` · 后端文案 `3b0c7e2` · 构建/凭据文档 `7abcc1b` · 遗留清零 `c52b594` · mock 结账 e2e + init 加固 `223cbf4`）。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 交付可发布的 `templates/shop`——DashCommerce 后端驱动的双语（en/zh）Astro **SSR** 电商模板（Gallery retail 设计），购物车/Stripe 全链路/评价/双语 SEO，配套 native 后端初始化脚本。
@@ -40,7 +44,7 @@
 
 **Interfaces:** Produces：npm scripts `dev/dev:cf/build/preview/check/test/seo-check/new-backend`；`dev` 固定 `astro dev --port 4322`
 
-- [ ] **Step 1: 初始化**
+- [x] **Step 1: 初始化**
 
 ```bash
 mkdir -p templates/shop/src/{styles,config,i18n,lib,layouts,components,views,pages/api,pages/shop,middleware}
@@ -49,9 +53,9 @@ npm i astro@^6 @astrojs/sitemap@^3 @astrojs/cloudflare @fontsource-variable/frau
 npm i -D vitest node-html-parser typescript@^5.9.0 @astrojs/check@^0.9.0
 ```
 
-- [ ] **Step 2: package.json**（name `@template/shop`；scripts：`dev: astro dev --port 4322`、`dev:cf: DEPLOY_TARGET=cloudflare astro dev --port 4322`、`build: astro build`、`preview: astro preview --port 4322`、`check/test/seo-check/new-backend` 同 blog；无 `prebuild`（shop 无 manifest——**Ruling 见 T15**：shop sitemap lastmod 用商品 `updatedAt` 现场取，不设 prebuild）；`engines: {node: ">=20"}`）
+- [x] **Step 2: package.json**（name `@template/shop`；scripts：`dev: astro dev --port 4322`、`dev:cf: DEPLOY_TARGET=cloudflare astro dev --port 4322`、`build: astro build`、`preview: astro preview --port 4322`、`check/test/seo-check/new-backend` 同 blog；无 `prebuild`（shop 无 manifest——**Ruling 见 T15**：shop sitemap lastmod 用商品 `updatedAt` 现场取，不设 prebuild）；`engines: {node: ">=20"}`）
 
-- [ ] **Step 3: astro.config.mjs（完整）**
+- [x] **Step 3: astro.config.mjs（完整）**
 
 ```js
 import { fileURLToPath } from "node:url";
@@ -87,15 +91,15 @@ export default defineConfig({
 
 （`adapter: undefined` 时 `output:"server"` 用 node 默认 preview——`npm run build` 本地验证不需 CF runtime；`dev:cf`/部署走 cloudflare adapter。）
 
-- [ ] **Step 4: tsconfig / vitest.config / .env.example / .gitignore**——与 blog 逐字相同（tsconfig include `src`+`.astro/types.d.ts`；vitest include `src/**/*.test.ts`+`scripts/**/*.test.mjs`；`.env.example` 加一行 `PURGE_SECRET=replace-me`；gitignore 加 `backend-info.json`、`backend/`）
+- [x] **Step 4: tsconfig / vitest.config / .env.example / .gitignore**——与 blog 逐字相同（tsconfig include `src`+`.astro/types.d.ts`；vitest include `src/**/*.test.ts`+`scripts/**/*.test.mjs`；`.env.example` 加一行 `PURGE_SECRET=replace-me`；gitignore 加 `backend-info.json`、`backend/`）
 
-- [ ] **Step 5: tokens.css / base.css**——从 `templates/blog/src/styles/` 逐字复制，`base.css` 追加：
+- [x] **Step 5: tokens.css / base.css**——从 `templates/blog/src/styles/` 逐字复制，`base.css` 追加：
 
 ```css
 .tabular { font-variant-numeric: tabular-nums; }
 ```
 
-- [ ] **Step 6: 占位页 + 构建**
+- [x] **Step 6: 占位页 + 构建**
 
 ```astro
 <!-- src/pages/index.astro -->
@@ -105,7 +109,7 @@ export default defineConfig({
 npx astro build   # Expected: Completed，dist/ 产出
 ```
 
-- [ ] **Step 7: Commit** `feat(shop): scaffold astro ssr storefront with design tokens`
+- [x] **Step 7: Commit** `feat(shop): scaffold astro ssr storefront with design tokens`
 
 ---
 
@@ -115,9 +119,9 @@ npx astro build   # Expected: Completed，dist/ 产出
 
 **Interfaces:** Produces：与 blog 相同签名——`site.locales/defaultLocale/pageSize(=12)`、`Locale`、`isLocale`、`siteUrl()`、`t/MessageKey/dictionaries`、`localeFromPath/localizePath/stripLocale`、`parseDotEnv/loadDotEnv`
 
-- [ ] **Step 1: 失败测试**——复制 `templates/blog/src/lib/dotenv.test.ts`、`templates/blog/src/i18n/i18n.test.ts` 到对应位置（routing 断言逐字相同）；`npm test` → FAIL（模块缺失）
+- [x] **Step 1: 失败测试**——复制 `templates/blog/src/lib/dotenv.test.ts`、`templates/blog/src/i18n/i18n.test.ts` 到对应位置（routing 断言逐字相同）；`npm test` → FAIL（模块缺失）
 
-- [ ] **Step 2: 实现**——`dotenv.ts`、`routing.ts` 从 blog **逐字复制**（同目录结构）；`site.ts` 复制后 `pageSize: 12`；`ui.ts` 用下列词典（shop 键集，parity 测试自动把关）：
+- [x] **Step 2: 实现**——`dotenv.ts`、`routing.ts` 从 blog **逐字复制**（同目录结构）；`site.ts` 复制后 `pageSize: 12`；`ui.ts` 用下列词典（shop 键集，parity 测试自动把关）：
 
 ```ts
 const en = {
@@ -179,9 +183,9 @@ export const dictionaries: Record<Locale, Record<MessageKey, string>> = { en, zh
 export function t(key: MessageKey, locale: Locale): string { return dictionaries[locale][key]; }
 ```
 
-- [ ] **Step 3: 跑测** `npm test` → PASS（routing+parity+dotenv 全绿）
+- [x] **Step 3: 跑测** `npm test` → PASS（routing+parity+dotenv 全绿）
 
-- [ ] **Step 4: Commit** `feat(shop): i18n dictionaries, locale routing and dotenv loader`
+- [x] **Step 4: Commit** `feat(shop): i18n dictionaries, locale routing and dotenv loader`
 
 ---
 
@@ -191,9 +195,9 @@ export function t(key: MessageKey, locale: Locale): string { return dictionaries
 
 **Interfaces:** Produces：CLI `node scripts/init-backend.mjs [--dir <path>] [--up <url>] [--port 4325]`；spawn env 注入 `DASHCOMMERCE_EDITION=native`、`PURGE_URL`、`PURGE_SECRET`（读自身 env）；可选 `STRIPE_SECRET_KEY` 写入后端 settings；产出 `backend-info.json {baseUrl, pat}`；**后端 astro.config** 追加：i18n、fonts:false、`experimental.cache` kv provider、wrangler.jsonc `CACHE` 绑定 + `PURGE_URL/PURGE_SECRET` vars（模板占位）
 
-- [ ] **Step 1: 失败测试**——复制 blog 的 `scripts/lib/portable-text.{mjs,test.mjs}`；`npm test` → RED→GREEN（同 blog 断言）
+- [x] **Step 1: 失败测试**——复制 blog 的 `scripts/lib/portable-text.{mjs,test.mjs}`；`npm test` → RED→GREEN（同 blog 断言）
 
-- [ ] **Step 2: 以 blog 脚本为基座复制** `cp templates/blog/scripts/init-backend.mjs templates/shop/scripts/`，然后逐项 delta（全部带幂等守卫）：
+- [x] **Step 2: 以 blog 脚本为基座复制** `cp templates/blog/scripts/init-backend.mjs templates/shop/scripts/`，然后逐项 delta（全部带幂等守卫）：
 
 ```js
 // (a) spawn 端口与 edition（替换 blog 的裸 bun run dev）
@@ -228,9 +232,9 @@ if (existsSync(wrPath)) {
 }
 ```
 
-- [ ] **Step 3: vendor 后端插件与 provider**——建 `templates/shop/backend-plugin/`，拷入6个文件（均已在 repo）：`emdash-plugins/frontend-purge/{purge-plugin,purge-plugin-entry}.ts`、`types/cloudflare-workers.d.ts`、`astro-cache-provider/kv-route-cache.ts`（改名拷入为 `kv-route-cache.ts`）；init-backend 把前3个拷到 `src/`，`kv-route-cache.ts` 也拷到 `src/`（entrypoint `./src/kv-route-cache.ts`）。purge 插件注册照抄 blog 脚本的 import+plugins 逻辑（`purgePlugin()` 进两个 edition 分支）。
+- [x] **Step 3: vendor 后端插件与 provider**——建 `templates/shop/backend-plugin/`，拷入6个文件（均已在 repo）：`emdash-plugins/frontend-purge/{purge-plugin,purge-plugin-entry}.ts`、`types/cloudflare-workers.d.ts`、`astro-cache-provider/kv-route-cache.ts`（改名拷入为 `kv-route-cache.ts`）；init-backend 把前3个拷到 `src/`，`kv-route-cache.ts` 也拷到 `src/`（entrypoint `./src/kv-route-cache.ts`）。purge 插件注册照抄 blog 脚本的 import+plugins 逻辑（`purgePlugin()` 进两个 edition 分支）。
 
-- [ ] **Step 4: Stripe 可选写入**
+- [x] **Step 4: Stripe 可选写入**
 
 ```js
 if (process.env.STRIPE_SECRET_KEY) {
@@ -242,12 +246,12 @@ if (process.env.STRIPE_SECRET_KEY) {
 }
 ```
 
-- [ ] **Step 5: 双语商品种子（spec §7.4：1 条商品带 zh 译文）**——对 `posts` 循环改 `products`：`toTranslate = products.slice(0,1)`；`translationOf` + `locale:"zh"` + slug `${slug}-zh` + `data:{title: zh标题, excerpt: zh摘要, prices…从 en data 复制}`；创建后 publish（草稿陷阱，blog 已证）。自检加：`?locale=zh` 商品 ≥1、translations 端点数组、`admin/settings` GET 含 `enabledCurrencies`。
+- [x] **Step 5: 双语商品种子（spec §7.4：1 条商品带 zh 译文）**——对 `posts` 循环改 `products`：`toTranslate = products.slice(0,1)`；`translationOf` + `locale:"zh"` + slug `${slug}-zh` + `data:{title: zh标题, excerpt: zh摘要, prices…从 en data 复制}`；创建后 publish（草稿陷阱，blog 已证）。自检加：`?locale=zh` 商品 ≥1、translations 端点数组、`admin/settings` GET 含 `enabledCurrencies`。
 
-- [ ] **Step 6: 活跑（端口隔离）** `node scripts/init-backend.mjs --dir /tmp/dc-mirror --port 4325`——**注意：/tmp/dc-mirror 当前由 blog 的 sandboxed 实例占用4321，本脚本4325 独立起 native 实例（同仓库双实例：先 `git -C /tmp/dc-mirror stash` 不需要——edition 由 env 控制，astro.config 两份配置共存：native spawn 用 `DASHCOMMERCE_EDITION=native`，与 blog 实例互不干扰；但同一 data.db 双进程写入有锁风险——**Ruling**：shop 脚本默认 `--dir ./backend`（独立 clone），验证时用独立 clone 到 `/tmp/dc-shop-backend`（网络可用时），或 `--up` 指向临时切 native 的单实例。执行者按当时网络选路径并记 ledger）
+- [x] **Step 6: 活跑（端口隔离）** `node scripts/init-backend.mjs --dir /tmp/dc-mirror --port 4325`——**注意：/tmp/dc-mirror 当前由 blog 的 sandboxed 实例占用4321，本脚本4325 独立起 native 实例（同仓库双实例：先 `git -C /tmp/dc-mirror stash` 不需要——edition 由 env 控制，astro.config 两份配置共存：native spawn 用 `DASHCOMMERCE_EDITION=native`，与 blog 实例互不干扰；但同一 data.db 双进程写入有锁风险——**Ruling**：shop 脚本默认 `--dir ./backend`（独立 clone），验证时用独立 clone 到 `/tmp/dc-shop-backend`（网络可用时），或 `--up` 指向临时切 native 的单实例。执行者按当时网络选路径并记 ledger）
   Expected：DONE、`backend-info.json`、cart 路由200（native 才有）、zh 商品 ≥1、幂等复跑0/0。
 
-- [ ] **Step 7: Commit** `feat(shop): native backend init script with cache provider and bilingual products`
+- [x] **Step 7: Commit** `feat(shop): native backend init script with cache provider and bilingual products`
 
 ---
 
@@ -257,7 +261,7 @@ if (process.env.STRIPE_SECRET_KEY) {
 
 **Interfaces:** Produces：`Product`（含 `data:{title, prices, sku, stock_quantity, stock_status, type, description, featured}`）、`TaxTerm`、`listProducts(locale)`、`pickLocalized(entries,locale)`（与 blog 同实现）、`catalogProducts(locale)`（双语合并+`product_category` terms enrich，组级回退照抄 blog `catalog`）、`translationsOf(id)`、`listTerms('product_category')`、`getSettings()`（PAT → `admin/settings` 平铺对象）、`formatMoney(minor, currency)`、`priceOf(product, currency)`
 
-- [ ] **Step 1: 失败测试** `src/lib/emdash.test.ts`：
+- [x] **Step 1: 失败测试** `src/lib/emdash.test.ts`：
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -290,7 +294,7 @@ describe("money (minor units)", () => {
 });
 ```
 
-- [ ] **Step 2: 跑测 RED** → **Step 3: 实现**——`env/api/listProducts/pickLocalized/translationsOf/listTerms` 结构照抄 `templates/blog/src/lib/emdash.ts`（collection 换 `products`；`locale` 参数同）；`catalogProducts` 照抄 `catalog`（TAXONOMIES=`["product_category"]`）；新增：
+- [x] **Step 2: 跑测 RED** → **Step 3: 实现**——`env/api/listProducts/pickLocalized/translationsOf/listTerms` 结构照抄 `templates/blog/src/lib/emdash.ts`（collection 换 `products`；`locale` 参数同）；`catalogProducts` 照抄 `catalog`（TAXONOMIES=`["product_category"]`）；新增：
 
 ```ts
 export interface Settings { enabledCurrencies?: string[]; defaultCurrency?: string; checkoutMode?: string; [k: string]: unknown }
@@ -311,9 +315,9 @@ export function priceOf(p: Product, currency: string): { currency: string; amoun
 }
 ```
 
-- [ ] **Step 4: live 测试**（blog 同构：`skipIf(!EMDASH_URL)`，env 由 `loadDotEnv()` 提供）：`catalogProducts('zh')` 含 ≥1 zh 商品与回退 en 项、`getSettings()` 返回数组型 `enabledCurrencies`
+- [x] **Step 4: live 测试**（blog 同构：`skipIf(!EMDASH_URL)`，env 由 `loadDotEnv()` 提供）：`catalogProducts('zh')` 含 ≥1 zh 商品与回退 en 项、`getSettings()` 返回数组型 `enabledCurrencies`
 
-- [ ] **Step 5: 跑测 GREEN + Commit** `feat(shop): product catalog client with locale merge and money helpers`
+- [x] **Step 5: 跑测 GREEN + Commit** `feat(shop): product catalog client with locale merge and money helpers`
 
 ---
 
@@ -331,7 +335,7 @@ export function priceOf(p: Product, currency: string): { currency: string; amoun
   - `POST /api/orders/lookup` `{email}` → 服务端 PAT → `admin/orders?email=`（**Ruling**：spec 的 email+token 无后端 token 路由；实现 email 查询，README 记信任模型）→ `{orders:[…]}`
   - `POST /api/reviews` body `{productId, rating, body, customerName, customerEmail}` → 后端 `reviews`（**后端硬要求 name+email**，源码已证）；`GET /api/reviews?productId=&cursor=` → 透传 `reviews/list`
 
-- [ ] **Step 1: 失败测试 `relay.test.ts`**：
+- [x] **Step 1: 失败测试 `relay.test.ts`**：
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -361,7 +365,7 @@ describe("relay", () => {
 });
 ```
 
-- [ ] **Step 2: RED → Step 3: 实现 `relay.ts`**：
+- [x] **Step 2: RED → Step 3: 实现 `relay.ts`**：
 
 ```ts
 import { env } from "./env"; // T5a: 见下
@@ -415,7 +419,7 @@ export async function forwardJson(env: Env, upstreamPath: string, init: RequestI
 
 （`env` 模块 = blog `dotenv.ts` 的 `loadDotEnv()` + `UPSTREAM=EMDASH_URL` 读取；`Env` 类型 `{UPSTREAM, PAT, PURGE_SECRET}` 由 Astro `locals` 或直接 `process.env`——**决定：直接 `process.env`（SSR 服务端），relay.ts 导出 `serverEnv()` 单点读取。**）
 
-- [ ] **Step 4: 端点文件**——每个端点 ≤20 行，形如：
+- [x] **Step 4: 端点文件**——每个端点 ≤20 行，形如：
 
 ```ts
 // src/pages/api/cart/items.ts
@@ -433,9 +437,9 @@ export const POST: APIRoute = async ({ request }) => {
 
 其余端点同构：`[action].ts` 用 `context.params.action` + `url.search`；`checkout/session` 读 JSON `{url}` →303 到该 url（失败透传状态+体）；`orders/draft` GET 透传；`orders/lookup` POST 读 JSON email → `forwardJson(..., lookupPath(email), {method:"GET"})` 后**剥离除 orders 摘要外字段**（只回 `{orders: items.map({id, status, createdAt, total, itemCount})}`——最小暴露）；`reviews.ts` GET/POST 分流。
 
-- [ ] **Step 5: 端点级活测**（native 后端4325 + vitest live 或 curl 序列）：POST items（无 cookie 新会话）→303+set-cookie；带 cookie GET /api/cart →同会话；POST coupon 错误码 → 透传4xx；`checkout/session` 无 Stripe →500 `{error:"Stripe not configured…"}` 透传；POST reviews 缺 name →400 透传。**Expected** 全部与后端原生响应一致。
+- [x] **Step 5: 端点级活测**（native 后端4325 + vitest live 或 curl 序列）：POST items（无 cookie 新会话）→303+set-cookie；带 cookie GET /api/cart →同会话；POST coupon 错误码 → 透传4xx；`checkout/session` 无 Stripe →500 `{error:"Stripe not configured…"}` 透传；POST reviews 缺 name →400 透传。**Expected** 全部与后端原生响应一致。
 
-- [ ] **Step 6: Commit** `feat(shop): server-side relay endpoints for cart checkout orders reviews`
+- [x] **Step 6: Commit** `feat(shop): server-side relay endpoints for cart checkout orders reviews`
 
 ---
 
@@ -445,7 +449,7 @@ export const POST: APIRoute = async ({ request }) => {
 
 **Interfaces:** Produces：`canonicalUrl`、`alternateLinks`、`jsonLdProduct({product, url, currency})`（`Product`+`Offer`：`priceCurrency`、`price`（major units 字符串）、`availability`（instock/outofstock 映射 schema.org URL）、`brand?` skip、`image?` skip）、`jsonLdBreadcrumb(items)`、`jsonLdOrganization()`、`jsonLdWebSite()`
 
-- [ ] **Step 1: 失败测试**：
+- [x] **Step 1: 失败测试**：
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -479,7 +483,7 @@ describe("shop seo", () => {
 });
 ```
 
-- [ ] **Step 2: RED → Step 3: 实现**（`canonicalUrl/alternateLinks/jsonLdBreadcrumb` 从 blog `seo.ts` 逐字复制；新增）：
+- [x] **Step 2: RED → Step 3: 实现**（`canonicalUrl/alternateLinks/jsonLdBreadcrumb` 从 blog `seo.ts` 逐字复制；新增）：
 
 ```ts
 export function jsonLdProduct(opts: { product: Product; url: string; currency: string }): Record<string, unknown> {
@@ -508,7 +512,7 @@ export function jsonLdWebSite(siteName: string, url: string): Record<string, unk
 }
 ```
 
-- [ ] **Step 4: GREEN + Commit** `feat(shop): product and organization json-ld builders`
+- [x] **Step 4: GREEN + Commit** `feat(shop): product and organization json-ld builders`
 
 ---
 
@@ -518,13 +522,13 @@ export function jsonLdWebSite(siteName: string, url: string): Record<string, unk
 
 **Interfaces:** Produces：`<BaseLayout title description locale path alternates? jsonLd? noindex? translations?>`（结构照抄 blog BaseLayout：hreflang pairs 兜底用 `localizePath`、og、主题防闪烁内联脚本、`noindex` meta、RSS link **删掉**（shop 无 feed））；`<Price minor currency/>`（`formatMoney` + `.tabular`）
 
-- [ ] **Step 1:** Header nav 项 = `home/shop/cart(/search?)`——**shop 无独立搜索页**（搜索并入 /shop 的 `q=`），nav：首页/商店/购物车（购物车角标组件 `CartBadge` 并入 Header：SSR 读 `/api/cart` 数量——**Ruling**：Header 每请求打一次 cart GET，单 isolate 可接受，README 注明；角标数量存 `Astro.locals.cartCount` 由中间件预取，见 T14）。LangSwitcher/ThemeToggle/Footer 从 blog 复制（Footer 去 RSS、保留 built 字样）。
+- [x] **Step 1:** Header nav 项 = `home/shop/cart(/search?)`——**shop 无独立搜索页**（搜索并入 /shop 的 `q=`），nav：首页/商店/购物车（购物车角标组件 `CartBadge` 并入 Header：SSR 读 `/api/cart` 数量——**Ruling**：Header 每请求打一次 cart GET，单 isolate 可接受，README 注明；角标数量存 `Astro.locals.cartCount` 由中间件预取，见 T14）。LangSwitcher/ThemeToggle/Footer 从 blog 复制（Footer 去 RSS、保留 built 字样）。
 
-- [ ] **Step 2: 实现**（blog 对应文件为底，delta：nav 集合、无 RSS alternate link、加 `Price` 组件）——完整写出 BaseLayout/Header/Footer/ThemeToggle/LangSwitcher/Price。
+- [x] **Step 2: 实现**（blog 对应文件为底，delta：nav 集合、无 RSS alternate link、加 `Price` 组件）——完整写出 BaseLayout/Header/Footer/ThemeToggle/LangSwitcher/Price。
 
-- [ ] **Step 3: 构建断言** `npx astro build`（占位页）→ Completed；`grep -c Fraunces dist/_astro/*.css` ≥1
+- [x] **Step 3: 构建断言** `npx astro build`（占位页）→ Completed；`grep -c Fraunces dist/_astro/*.css` ≥1
 
-- [ ] **Step 4: Commit** `feat(shop): gallery layout with header footer and price formatting`
+- [x] **Step 4: Commit** `feat(shop): gallery layout with header footer and price formatting`
 
 ---
 
@@ -536,7 +540,7 @@ export function jsonLdWebSite(siteName: string, url: string): Record<string, unk
 - Consumes：`catalogProducts`、`t`、`formatMoney/priceOf`
 - Produces：`parseFacets(searchParams): {sort:'new'|'priceAsc'|'priceDesc', page:number, q:string}`；`applyFacets(products, facets, pageSize=12): {items, total, pageCount}`（q 匹配 title/sku 大小写不敏感；price 排序用 `priceOf(...,'USD')?.amount ?? Infinity`）；`shopCanonical(locale)` → `localizePath("/shop", locale)`（**所有过滤变体 canonical 恒指 /shop**）；页面 `noindex` 条件 = `sort!=='new' || page>1 || q`（分类页恒 noindex？——**Ruling：分类页 canonical 自指 + noindex**（spec 说分类页存在但过滤面不进索引；`/shop` 无参首页可索引）
 
-- [ ] **Step 1: 失败测试 `facets.test.ts`**：
+- [x] **Step 1: 失败测试 `facets.test.ts`**：
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -563,9 +567,9 @@ describe("facets", () => {
 });
 ```
 
-- [ ] **Step 2: RED → Step 3: 实现 `facets.ts`**（纯函数）+ ProductCard（大图占位块——**诚实内容**：demo 商品无图，用 `data.type` 生成的纯色/纹理占位 + 标题/价格/库存点，不做假图）+ SortSelect（`<form method="get">` 保 JS-free 排序，隐藏当前 q/page 隐藏域）+ CategoryNav（`listTerms('product_category')` + `t('tax.all')`）
+- [x] **Step 2: RED → Step 3: 实现 `facets.ts`**（纯函数）+ ProductCard（大图占位块——**诚实内容**：demo 商品无图，用 `data.type` 生成的纯色/纹理占位 + 标题/价格/库存点，不做假图）+ SortSelect（`<form method="get">` 保 JS-free 排序，隐藏当前 q/page 隐藏域）+ CategoryNav（`listTerms('product_category')` + `t('tax.all')`）
 
-- [ ] **Step 4: 页面**（en 根 + zh 镜像，`getStaticPaths` 同 blog 模式；**SSR 页面**：`export const prerender = false` 默认即可（output:server 全 SSR）；数据每次请求 `catalogProducts(locale)`——T14 缓存接管）：
+- [x] **Step 4: 页面**（en 根 + zh 镜像，`getStaticPaths` 同 blog 模式；**SSR 页面**：`export const prerender = false` 默认即可（output:server 全 SSR）；数据每次请求 `catalogProducts(locale)`——T14 缓存接管）：
 
 ```astro
 <!-- src/pages/shop/index.astro 核心 -->
@@ -583,9 +587,9 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 （分类页 `shop/c/[slug].astro`：filter `p.terms?.product_category` 含 slug；canonical=`localizePath('/shop/c/'+slug)`；`noindex` 恒 true——Ruling。zh 镜像同构。）
 
-- [ ] **Step 5: 构建+断言**：`npx astro build` → 访问断言（node-html-parser 脚本或 curl preview）：`/shop` canonical=`SITE/shop` 无 noindex；`/shop?sort=priceAsc`（SSR——用 preview curl）canonical 同 `/shop` 且含 noindex；`/shop/c/bundles` canonical 自指 + noindex；zh 页 `lang=zh`。
+- [x] **Step 5: 构建+断言**：`npx astro build` → 访问断言（node-html-parser 脚本或 curl preview）：`/shop` canonical=`SITE/shop` 无 noindex；`/shop?sort=priceAsc`（SSR——用 preview curl）canonical 同 `/shop` 且含 noindex；`/shop/c/bundles` canonical 自指 + noindex；zh 页 `lang=zh`。
 
-- [ ] **Step 6: Commit** `feat(shop): home and product grid with facets and faceted-seo canonicals`
+- [x] **Step 6: Commit** `feat(shop): home and product grid with facets and faceted-seo canonicals`
 
 ---
 
@@ -595,13 +599,13 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 **Interfaces:** Consumes：`catalogProducts`、`translationsOf`、`jsonLdProduct`、`formatMoney/priceOf`、`t`；Produces：`<ProductView product locale translations? currency/>`
 
-- [ ] **Step 1: 实现**——PDP 布局：左图廊（无图 → `data.type` 占位面板，标注 "sample"）、右信息栏（标题/价格 tabular/库存点/数量 input+加购 form `POST /api/cart/items` hidden productId+quantity）、描述（`data.description` 为纯文本或 PT——`text()` helper 从 blog PortableText 逻辑简化：字符串直出/数组拍平）、评价区骨架（列表+表单在 T13 接线，本任务先渲染 `reviews/list` 经 `/api/reviews?productId=` 服务端取数）、JSON-LD `jsonLdProduct` + `jsonLdBreadcrumb([shop, product])`、hreflang `pairs`（translations 同 blog PostView）、`noindex`？**否**（PDP 可索引，spec 未排除）。
+- [x] **Step 1: 实现**——PDP 布局：左图廊（无图 → `data.type` 占位面板，标注 "sample"）、右信息栏（标题/价格 tabular/库存点/数量 input+加购 form `POST /api/cart/items` hidden productId+quantity）、描述（`data.description` 为纯文本或 PT——`text()` helper 从 blog PortableText 逻辑简化：字符串直出/数组拍平）、评价区骨架（列表+表单在 T13 接线，本任务先渲染 `reviews/list` 经 `/api/reviews?productId=` 服务端取数）、JSON-LD `jsonLdProduct` + `jsonLdBreadcrumb([shop, product])`、hreflang `pairs`（translations 同 blog PostView）、`noindex`？**否**（PDP 可索引，spec 未排除）。
 
-- [ ] **Step 2: 库存/货币显示**——`priceOf(product, currency)` currency 来自 cart currency？**Ruling：PDP 静态显示 `defaultCurrency`（getSettings），切币后由购物车页/网格展示 cart 币种**（避免每 PDP 打 cart；README 注明）。`stock_status==='instock' && stock_quantity!=0` → `pdp.inStock`/`pdp.lowStock {n}`/`pdp.outOfStock`。
+- [x] **Step 2: 库存/货币显示**——`priceOf(product, currency)` currency 来自 cart currency？**Ruling：PDP 静态显示 `defaultCurrency`（getSettings），切币后由购物车页/网格展示 cart 币种**（避免每 PDP 打 cart；README 注明）。`stock_status==='instock' && stock_quantity!=0` → `pdp.inStock`/`pdp.lowStock {n}`/`pdp.outOfStock`。
 
-- [ ] **Step 3: 构建断言**：PDP HTML 含 `application/ld+json`（`"Product"`）、`Add to cart` form action `/api/cart/items`、canonical 自指、zh 镜像 lang。
+- [x] **Step 3: 构建断言**：PDP HTML 含 `application/ld+json`（`"Product"`）、`Add to cart` form action `/api/cart/items`、canonical 自指、zh 镜像 lang。
 
-- [ ] **Step 4: Commit** `feat(shop): product detail page with json-ld and add-to-cart`
+- [x] **Step 4: Commit** `feat(shop): product detail page with json-ld and add-to-cart`
 
 ---
 
@@ -611,10 +615,10 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 **Interfaces:** Consumes：`relayCookie`+`forwardJson`（服务端 GET `cart`）、`formatMoney`、`t`；Produces：表单动作全部 `POST /api/cart/[action]`（remove → action `item` + `_method=delete`？——后端 `cart/item` DELETE 用 query `lineId`。**Ruling：relay 端点支持 `_method=delete` 转发 DELETE**（在 `api/cart/[action].ts`：`method = body._method === 'delete' ? 'DELETE' : 'POST'`））
 
-- [ ] **Step 1: 实现 CartView**——表格（商品/单价/数量 form（action `item`? 后端更新数量是 `PATCH cart/item?lineId=` —— relay action 表加 `item` 支持 PATCH：`_method=patch`）/小计/移除）、优惠码 form（`coupon`）、运费区 form（`shipping-location` + `shipping-method` 下拉，数据来自 cart JSON 的 `shippingMethods`？——**后端 cart JSON 形状**（验证过）含 `items/subtotal/coupons/shippingTotal/taxTotal/total`；运费方法列表走 `cart/shipping-methods` POST 返回 rates——渲染时服务端先 POST `shipping-location`? 过重。**Ruling：v1 购物车展示后端 cart JSON 已有字段（含已选 shippingMethod 若有），运费选择表单只在填了 postalCode 后经 `?step=1` 惰性渲染——简化：提供 location form + methods form 两个串联 POST（浏览器自然多页流），不写 JS**）、去结账按钮 `POST /api/checkout/session`？——结账按钮是链接 `/checkout`（页面），checkout 页里才是 session POST。
-- [ ] **Step 2: 空态/错误态**：cart 为空 → `cart.empty` + 去商店链接；`?error=1` → `error.retry` 提示条。
-- [ ] **Step 3: 构建断言**：`/cart` 含表单 action `/api/cart/...`、**无** `x-ssr-cache`（T14 后验，先记录）、空 cookie时渲染空态。
-- [ ] **Step 4: Commit** `feat(shop): cart page with coupon and shipping forms`
+- [x] **Step 1: 实现 CartView**——表格（商品/单价/数量 form（action `item`? 后端更新数量是 `PATCH cart/item?lineId=` —— relay action 表加 `item` 支持 PATCH：`_method=patch`）/小计/移除）、优惠码 form（`coupon`）、运费区 form（`shipping-location` + `shipping-method` 下拉，数据来自 cart JSON 的 `shippingMethods`？——**后端 cart JSON 形状**（验证过）含 `items/subtotal/coupons/shippingTotal/taxTotal/total`；运费方法列表走 `cart/shipping-methods` POST 返回 rates——渲染时服务端先 POST `shipping-location`? 过重。**Ruling：v1 购物车展示后端 cart JSON 已有字段（含已选 shippingMethod 若有），运费选择表单只在填了 postalCode 后经 `?step=1` 惰性渲染——简化：提供 location form + methods form 两个串联 POST（浏览器自然多页流），不写 JS**）、去结账按钮 `POST /api/checkout/session`？——结账按钮是链接 `/checkout`（页面），checkout 页里才是 session POST。
+- [x] **Step 2: 空态/错误态**：cart 为空 → `cart.empty` + 去商店链接；`?error=1` → `error.retry` 提示条。
+- [x] **Step 3: 构建断言**：`/cart` 含表单 action `/api/cart/...`、**无** `x-ssr-cache`（T14 后验，先记录）、空 cookie时渲染空态。
+- [x] **Step 4: Commit** `feat(shop): cart page with coupon and shipping forms`
 
 ---
 
@@ -624,10 +628,10 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 **Interfaces:** Consumes：服务端 GET cart（空 →302 `/cart`）、`checkout/mode`（public 路由直取——**注意该路由 public，无需 PAT**，但仍服务端 fetch）、`POST /api/checkout/session`
 
-- [ ] **Step 1: CheckoutView**——联系邮箱 input（POST `cart/contact` 存入 cart，再 session？**Ruling：邮箱随 create-session 不收（hosted Stripe 收集邮箱，源码注释已证"email + full address collected by Stripe"）→ checkout 页只渲染 cart 摘要 + 结账按钮（按钮 = form POST `/api/checkout/session`，成功303 直达 Stripe）+ notConfigured 错误态**。`checkout/mode==='embedded'` 时 v1 提示不支持（spec 非目标：自建结账；README 注明 hosted-only）。
-- [ ] **Step 2: thank-you/[draft]**——客户端 `<script>` 轮询 `GET /api/orders/draft?id=`（每800ms，最多20次）：`pending` → `thanks.pending`；`ready` → 渲染订单号/金额（把 JSON 填入占位节点）；`failed` → `thanks.failed` + lookup 链接。页面 `noindex`。
-- [ ] **Step 3: 断言**：checkout 空车 →302；非空渲染按钮；无 Stripe key 时 POST →500 透传且页面显示 `checkout.notConfigured`（错误分支渲染——表单 action 目标页 GET 已验，POST 错误用 curl 断言 body）；thank-you 页含 `data-draft` 与轮询脚本、`noindex`。
-- [ ] **Step 4: Commit** `feat(shop): hosted checkout handoff and thank-you polling`
+- [x] **Step 1: CheckoutView**——联系邮箱 input（POST `cart/contact` 存入 cart，再 session？**Ruling：邮箱随 create-session 不收（hosted Stripe 收集邮箱，源码注释已证"email + full address collected by Stripe"）→ checkout 页只渲染 cart 摘要 + 结账按钮（按钮 = form POST `/api/checkout/session`，成功303 直达 Stripe）+ notConfigured 错误态**。`checkout/mode==='embedded'` 时 v1 提示不支持（spec 非目标：自建结账；README 注明 hosted-only）。
+- [x] **Step 2: thank-you/[draft]**——客户端 `<script>` 轮询 `GET /api/orders/draft?id=`（每800ms，最多20次）：`pending` → `thanks.pending`；`ready` → 渲染订单号/金额（把 JSON 填入占位节点）；`failed` → `thanks.failed` + lookup 链接。页面 `noindex`。
+- [x] **Step 3: 断言**：checkout 空车 →302；非空渲染按钮；无 Stripe key 时 POST →500 透传且页面显示 `checkout.notConfigured`（错误分支渲染——表单 action 目标页 GET 已验，POST 错误用 curl 断言 body）；thank-you 页含 `data-draft` 与轮询脚本、`noindex`。
+- [x] **Step 4: Commit** `feat(shop): hosted checkout handoff and thank-you polling`
 
 ---
 
@@ -637,9 +641,9 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 **Interfaces:** Consumes：`POST /api/orders/lookup`（Task 5 端点）
 
-- [ ] **Step 1: 实现**——GET 渲染表单（email input + submit → 同页 POST，**无 JS**：`action="/orders/lookup" method="post"`，页面自身 POST 分支读 form 服务端调 relay → 渲染结果表）。结果表列：订单号（截断）、日期、状态、总额、件数；空态 `orders.none`。页面可索引？**Ruling：noindex**（查询结果 URL 无区分度）。
-- [ ] **Step 2: 断言**：GET200 表单；POST email=未知 → `orders.none` 文案；POST 有效 email（用 seed 订单？demo 无订单——**用空集断言 + mock live：无订单是常态**）；zh 镜像。
-- [ ] **Step 3: Commit** `feat(shop): order lookup page over admin orders by email`
+- [x] **Step 1: 实现**——GET 渲染表单（email input + submit → 同页 POST，**无 JS**：`action="/orders/lookup" method="post"`，页面自身 POST 分支读 form 服务端调 relay → 渲染结果表）。结果表列：订单号（截断）、日期、状态、总额、件数；空态 `orders.none`。页面可索引？**Ruling：noindex**（查询结果 URL 无区分度）。
+- [x] **Step 2: 断言**：GET200 表单；POST email=未知 → `orders.none` 文案；POST 有效 email（用 seed 订单？demo 无订单——**用空集断言 + mock live：无订单是常态**）；zh 镜像。
+- [x] **Step 3: Commit** `feat(shop): order lookup page over admin orders by email`
 
 ---
 
@@ -649,9 +653,9 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 
 **Interfaces:** Consumes：`GET /api/reviews?productId=`（服务端，T5）、`POST /api/reviews`（浏览器 form → relay →303 回 PDP `#reviews`）
 
-- [ ] **Step 1: 实现**——ReviewForm：`rating`（1-5 `<select>`）、`customerName`、`customerEmail`、`body`（textarea）→ `POST /api/reviews`（relay 已含全部必填——后端硬要求 name+email ✓）；成功303 回 `?review=ok` → 渲染 `pdp.reviewThanks`；失败（400/422）→ 显示后端 error 文本。列表区：`summary`（avg/count）+ 分页 cursor（`hasMore` → 链接 `?reviewCursor=`）。
-- [ ] **Step 2: 断言**：表单字段齐全（name/email/rating/body）；POST 缺字段 → 页面显示错误（curl 模拟）；成功路径 live（native 后端无 Stripe 依赖 ✓）：提交 →303 → 重取列表含新条目（moderation：`reviewsRequireApproval` 默认 true → 列表不含未审——**断言改为：返回成功但列表暂不含，README 注明审核流**；若 settings 关审核则含——live 断言按 `getSettings().reviewsRequireApproval` 分支）。
-- [ ] **Step 3: Commit** `feat(shop): review list and moderated submit on pdp`
+- [x] **Step 1: 实现**——ReviewForm：`rating`（1-5 `<select>`）、`customerName`、`customerEmail`、`body`（textarea）→ `POST /api/reviews`（relay 已含全部必填——后端硬要求 name+email ✓）；成功303 回 `?review=ok` → 渲染 `pdp.reviewThanks`；失败（400/422）→ 显示后端 error 文本。列表区：`summary`（avg/count）+ 分页 cursor（`hasMore` → 链接 `?reviewCursor=`）。
+- [x] **Step 2: 断言**：表单字段齐全（name/email/rating/body）；POST 缺字段 → 页面显示错误（curl 模拟）；成功路径 live（native 后端无 Stripe 依赖 ✓）：提交 →303 → 重取列表含新条目（moderation：`reviewsRequireApproval` 默认 true → 列表不含未审——**断言改为：返回成功但列表暂不含，README 注明审核流**；若 settings 关审核则含——live 断言按 `getSettings().reviewsRequireApproval` 分支）。
+- [x] **Step 3: Commit** `feat(shop): review list and moderated submit on pdp`
 
 ---
 
@@ -663,7 +667,7 @@ const { items, total, pageCount } = applyFacets(products, facets, 12);
 - Produces：`shouldCache(url, response): boolean`（纯函数，可测）；`cachedGet` 逻辑在 middleware；`POST /__purge`（header `x-purge-secret` === `PURGE_SECRET` → 清空缓存 → `{purged:n}`；错误 secret →403）
 - 缓存规则：**仅 GET**、路径 ∈ {`/`, `/shop` 前缀（含 `/shop/*`、`/zh/*` 同构）、`/zh`} **且不以** `/cart|/checkout|/thank-you|/orders` 开头、**无 `Set-Cookie` 响应头**、状态200、`content-type` 含 `text/html`；键 = `pathname + search`（faceted 页各自成键，purge 全清）；HIT 响应加 `x-ssr-cache: HIT`；存储 = 模块级 `Map<string,{body,headers,status,storedAt}>` + `MAX=200` LRU（超限删最老）+ `TTL=60_000ms`
 
-- [ ] **Step 1: 失败测试 `middleware.test.ts`**（纯函数层）：
+- [x] **Step 1: 失败测试 `middleware.test.ts`**（纯函数层）：
 
 ```ts
 import { describe, it, expect } from "vitest";
@@ -697,7 +701,7 @@ describe("ssr cache policy", () => {
 });
 ```
 
-- [ ] **Step 2: RED → Step 3: 实现 `src/lib/cache-store.ts`**（`shouldCache/cacheKey/remember/recall/purgeAll` + LRU/TTL 如上）与 `src/middleware.ts`：
+- [x] **Step 2: RED → Step 3: 实现 `src/lib/cache-store.ts`**（`shouldCache/cacheKey/remember/recall/purgeAll` + LRU/TTL 如上）与 `src/middleware.ts`：
 
 ```ts
 import { defineMiddleware } from "astro:middleware";
@@ -726,7 +730,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 （`response.clone().text()` 后原 response body 仍可用 ✓；`Object.fromEntries(hit.headers)` 与数组 headers 双形态在 cache-store 里统一为 `headers: [string,string][]`。）
 
-- [ ] **Step 4: `src/pages/__purge.ts`**：
+- [x] **Step 4: `src/pages/__purge.ts`**：
 
 ```ts
 import type { APIRoute } from "astro";
@@ -741,9 +745,9 @@ export const POST: APIRoute = async ({ request }) => {
 };
 ```
 
-- [ ] **Step 5: e2e 断言（preview/curl 序列）**：`/shop` → MISS → 再取 HIT（`x-ssr-cache`）；`/cart` 连取两次均无该头；`POST /__purge` 错 secret403/对 secret200 `{purged≥1}` → `/shop` 回 MISS；带 `Set-Cookie` 的响应（加购后 `/shop`？加购是 POST 不缓存——构造：先 GET `/cart`（有 Set-Cookie 首包）断言无缓存头 ✓ 即 Step1 规则的活体）。
+- [x] **Step 5: e2e 断言（preview/curl 序列）**：`/shop` → MISS → 再取 HIT（`x-ssr-cache`）；`/cart` 连取两次均无该头；`POST /__purge` 错 secret403/对 secret200 `{purged≥1}` → `/shop` 回 MISS；带 `Set-Cookie` 的响应（加购后 `/shop`？加购是 POST 不缓存——构造：先 GET `/cart`（有 Set-Cookie 首包）断言无缓存头 ✓ 即 Step1 规则的活体）。
 
-- [ ] **Step 6: Commit** `feat(shop): ssr page cache middleware with authenticated purge`
+- [x] **Step 6: Commit** `feat(shop): ssr page cache middleware with authenticated purge`
 
 ---
 
@@ -759,10 +763,10 @@ export const POST: APIRoute = async ({ request }) => {
 - sitemap：`xhtml:link` + host + 无尾斜杠（复用 blog 实现）；双语 RSS **跳过**（shop 无 feed——断言 `rss.xml` 不存在则 OK，存在则 fail）
 - 404 noindex + about？——**shop 无 about 页**（spec §5.1 无 about——nav 也没有）✓ 不断言
 
-- [ ] **Step 1:** 复制 `seo-assert.{mjs,test.mjs}` from blog → `npm test` 绿（同断言）
-- [ ] **Step 2:** 写 `robots.txt.ts`（复制 blog）与 `seo-check.mjs`（blog 骨架 + 上表 delta：Product/Organization JSON-LD 组、faceted 组、RSS 反向断言、`--preview` 可选运行时组）
-- [ ] **Step 3:** 活跑：`npm run build && npm run seo-check`（无 preview → SKIP 提示）→ PASSED；再 `npm run preview -- --port 4322` 起 preview 加 `--preview` 跑 → FACET 组绿
-- [ ] **Step 4: Commit** `test(shop): seo assertions covering pat canon faceted and product jsonld`
+- [x] **Step 1:** 复制 `seo-assert.{mjs,test.mjs}` from blog → `npm test` 绿（同断言）
+- [x] **Step 2:** 写 `robots.txt.ts`（复制 blog）与 `seo-check.mjs`（blog 骨架 + 上表 delta：Product/Organization JSON-LD 组、faceted 组、RSS 反向断言、`--preview` 可选运行时组）
+- [x] **Step 3:** 活跑：`npm run build && npm run seo-check`（无 preview → SKIP 提示）→ PASSED；再 `npm run preview -- --port 4322` 起 preview 加 `--preview` 跑 → FACET 组绿
+- [x] **Step 4: Commit** `test(shop): seo assertions covering pat canon faceted and product jsonld`
 
 ---
 
@@ -770,9 +774,9 @@ export const POST: APIRoute = async ({ request }) => {
 
 **Files:** Create `templates/shop/README.md`、复核 `.env.example`
 
-- [ ] **Step 1: README**——结构同 blog：Quick start（前置 Node≥20/git/bun；`new-backend --dir ./backend --port 4325`；`.env` 含 `PURGE_SECRET`；`npm run dev` →4322）、Scripts 表（`dev/build/preview/check/test/seo-check/new-backend`，`dev:cf` 部署 CF Worker）、Configuration（locales 词典/tokens/环境变量/端口约定）、**Auto-purge on save**（后端 `PURGE_URL=http://localhost:4322/__purge` + `PURGE_SECRET` 同值——new-backend spawn env 注入说明）、**Stripe**（`export STRIPE_SECRET_KEY=sk_test_…` 后 new-backend 写入；hosted-only；测试卡号列表）、Deploy（CF：`DEPLOY_TARGET=cloudflare npm run build` + wrangler deploy + 后端 wrangler `CACHE` 绑定与 `PURGE_URL` 指向前端域名）、信任模型（orders lookup = email 知识，spec 无 token 路由）、加语言指南（同 blog 五步）
+- [x] **Step 1: README**——结构同 blog：Quick start（前置 Node≥20/git/bun；`new-backend --dir ./backend --port 4325`；`.env` 含 `PURGE_SECRET`；`npm run dev` →4322）、Scripts 表（`dev/build/preview/check/test/seo-check/new-backend`，`dev:cf` 部署 CF Worker）、Configuration（locales 词典/tokens/环境变量/端口约定）、**Auto-purge on save**（后端 `PURGE_URL=http://localhost:4322/__purge` + `PURGE_SECRET` 同值——new-backend spawn env 注入说明）、**Stripe**（`export STRIPE_SECRET_KEY=sk_test_…` 后 new-backend 写入；hosted-only；测试卡号列表）、Deploy（CF：`DEPLOY_TARGET=cloudflare npm run build` + wrangler deploy + 后端 wrangler `CACHE` 绑定与 `PURGE_URL` 指向前端域名）、信任模型（orders lookup = email 知识，spec 无 token 路由）、加语言指南（同 blog 五步）
 
-- [ ] **Step 2: 全链终验**
+- [x] **Step 2: 全链终验**
 
 ```bash
 # 1) 后端（native,4325）已在 T3 起着；前端：
@@ -792,7 +796,7 @@ npm run preview -- --port 4322 &                        # 等 200
 # 4) 视觉自查（frontend-design 第6步）：360/768/1280、暗色、zh、focus CSS 在包内
 ```
 
-- [ ] **Step 3: Commit** `docs(shop): publish-grade readme with stripe and purge setup`
+- [x] **Step 3: Commit** `docs(shop): publish-grade readme with stripe and purge setup`
 
 ---
 

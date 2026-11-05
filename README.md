@@ -2,9 +2,20 @@
 
 从 DashCommerce/EmDash 调研与验证中固化的可复用资产（全部经本地 workerd 实测，源文件与验证版本逐字节一致）。
 
+## 模板（主交付）
+
+| 模板 | 说明 | 文档 |
+|---|---|---|
+| `templates/shop` | 双语（en/zh）Astro **SSR** 电商模板 · Gallery retail 设计 · Stripe hosted 全链路 · 前后端分离 · 运营数据与界面文案均可后端管理 · 可部署 Cloudflare Worker | [`templates/shop/README.md`](templates/shop/README.md) |
+| `templates/blog` | 双语 EmDash 内容站模板（SSR + 增量 SSG 构建） | [`templates/blog/README.md`](templates/blog/README.md) |
+
+两个模板的零后端代码约束：`new-backend` 脚本负责后端 provisioning（native edition、i18n、KV cache provider、purge 插件、双语商品、可选 Stripe、ui_copy 文案集合），模板只消费后端 API。
+
 ## 结构
 
 ```
+templates/shop/                  双语 SSR 电商模板（主交付）
+templates/blog/                  双语内容站模板
 emdash-plugins/frontend-purge/   EmDash 插件：内容变更 → 推送前端 purge API
 astro-cache-provider/kv-route-cache.ts  Astro 路由缓存的 KV CacheProvider（ISR 存储层）
 storefront-ssr/                  SSR 电商店面 worker（商品/购物车中继/页缓存/鉴权 /__purge）
@@ -12,6 +23,8 @@ storefront-ssg/build.mjs         SSG 增量构建脚本（manifest diff：只重
 storefront-ssr/bff-prototype.ts  BFF 原型（分类过滤/搜索的目录中继逻辑，SSR 模板未包含这部分，供参考）
 types/cloudflare-workers.d.ts    cloudflare:workers 最小环境声明（见注意事项）
 ```
+
+> 下面是早期调研阶段的**验证资产**与接线要点（工具级参考）——两个模板已经把其中的 purge 插件 / KV cache provider 以可直接复制的形式内置（见各模板 README）。
 
 ## 接线（在 DashCommerce/EmDash starter 中）
 
