@@ -1,4 +1,5 @@
 import type { Locale } from "../config/site";
+import { uiCopyOverlay } from "../lib/copy";
 
 const en = {
   "site.name": "The Edit",
@@ -131,5 +132,6 @@ const zh: Record<MessageKey, string> = {
 export const dictionaries: Record<Locale, Record<MessageKey, string>> = { en, zh };
 
 export function t(key: MessageKey, locale: Locale): string {
-  return dictionaries[locale][key];
+  // Backend ui-copy override (per locale) wins; absent → template dictionary.
+  return uiCopyOverlay()[locale]?.[key] ?? dictionaries[locale][key];
 }

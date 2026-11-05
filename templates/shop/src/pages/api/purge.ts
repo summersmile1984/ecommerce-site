@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { purgeAll } from "../../lib/cache-store";
 import { serverEnv } from "../../lib/relay";
 import { purgeCatalogCaches } from "../../lib/emdash";
+import { purgeUiCopyCache } from "../../lib/copy";
 
 /** POST /api/purge — backend afterSave pushes here (frontend-purge plugin). */
 export const POST: APIRoute = async ({ request }) => {
@@ -14,7 +15,8 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const pages = purgeAll();
   const catalog = purgeCatalogCaches();
-  return new Response(JSON.stringify({ purged: pages, catalog }), {
+  const copy = purgeUiCopyCache();
+  return new Response(JSON.stringify({ purged: pages, catalog, copy }), {
     headers: { "Content-Type": "application/json" },
   });
 };

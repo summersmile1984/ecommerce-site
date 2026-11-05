@@ -51,6 +51,16 @@ npm run new-backend -- --dir ./backend --port 4325   # spawn 会继承这两个�
 
 未配置时插件静默跳过。
 
+## Copy（后端管理界面文案）
+
+文案两层：`src/i18n/ui.ts` 是**回退字典 + key 类型源**（en/zh parity 有测试守 key 集），后端 `ui_copy` 集合按 key 覆盖**对应语言**的值：
+
+- **结构**：一个 key 一条 entry（`{key, value}`）；其他语言走条目上的 locale 切换（`/_emdash/api/content/ui_copy/[id]/translations`，collection 通用参数）——admin → Content → UI Copy 即可编辑
+- **生效链路**：middleware `ensureUiCopy()`（渲染前，60s ttl-cache，HIT 缓存页跳过）→ `t()` 同步读快照；`POST /api/purge` 立即失效（响应含 `copy` 计数）
+- **语义**：key 必须已存在于 `ui.ts`（后端只供值不供 key）；**严格按语言覆盖**——改 en 不影响 zh；后端缺 key 或不可达 → 回落模板，文案永不致渲染失败
+- **种子**：`new-backend` 把集合写进 `seed.json`（slug `ui_copy`，字符集 `[a-z0-9_]`）并种一条 `home.featured` demo（en "Editor's picks" / zh "编辑精选"），自检断言 ≥1 条已发布
+- **注意**：后端运行中新建集合需重启（typegen）——init-backend 的自检会兜住这种情况
+
 ## Stripe（hosted-only）
 
 ```bash
@@ -97,6 +107,7 @@ npx wrangler deploy -c dist/server/wrangler.json
 src/config/site.ts          locales / siteUrl
 src/i18n/{ui,routing}.ts    词典 + t() / 路由本地化
 src/lib/emdash.ts           商品客户端（catalog 合并回退 + terms enrich + 金额）
+src/lib/copy.ts             后端文案客户端（ui_copy → t() 覆盖，60s + purge）
 src/lib/relay.ts            服务端中继（cookie 双向、PAT、create-session 契约）
 src/lib/{facets,seo,cart-types,cache-store,not-found,dotenv}.ts
 src/middleware.ts           SSR 页面缓存

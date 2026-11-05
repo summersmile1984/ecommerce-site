@@ -118,6 +118,52 @@ if (existsSync(wrPath)) {
   }
 }
 
+// --- 2d. ui-copy collection: backend-managed storefront copy -------------
+// One entry per t() dictionary key (src/i18n/ui.ts), per-locale values via
+// the translations toggle. Defined here so `seed` (section 3) creates it.
+const seedPath = `${DIR}/packages/starter/.emdash/seed.json`;
+if (existsSync(seedPath)) {
+  const seed = JSON.parse(readFileSync(seedPath, "utf8"));
+  // drop the invalid hyphen slug if a previous run wrote it (slug charset:
+  // [a-z0-9_], enforced by seed validation)
+  const cols = (seed.collections ?? []).filter((c) => c.slug !== "ui-copy");
+  if (!cols.some((c) => c.slug === "ui_copy")) {
+    seed.collections = [
+      ...cols,
+      {
+        slug: "ui_copy",
+        label: "UI Copy",
+        labelSingular: "UI String",
+        description:
+          "Storefront copy overrides keyed by the template's t() dictionary (templates/shop/src/i18n/ui.ts). A value here wins for its locale; delete the entry to fall back to the template. Keys must already exist in the dictionary.",
+        icon: "type",
+        supports: ["drafts"],
+        fields: [
+          {
+            slug: "key",
+            label: "Key",
+            type: "string",
+            required: true,
+            searchable: true,
+            help: "Dictionary key, e.g. home.hero",
+          },
+          {
+            slug: "value",
+            label: "Value",
+            type: "text",
+            required: true,
+            help: "Per language: use the locale toggle to edit other versions.",
+          },
+        ],
+      },
+    ];
+    writeFileSync(seedPath, JSON.stringify(seed, null, 2) + "\n");
+    log("seed.json: ui-copy collection added");
+  }
+} else {
+  log("seed.json NOT found — ui-copy collection not added (self-check will fail)");
+}
+
 // --- 3. install + init + seed ------------------------------------------
 const run = (cmd, opts = {}) =>
   execSync(cmd, { cwd: `${DIR}/packages/starter`, stdio: "inherit", ...opts });
@@ -261,6 +307,50 @@ if (zhExisting?.status === "published") {
 }
 log(`zh product translations: ${created} created, ${published} published`);
 
+// --- 6b. ui-copy demo override (proves backend copy → t() pipeline) ------
+{
+  const cl = await (
+    await api("/_emdash/api/content/ui_copy?limit=100&status=published")
+  ).json();
+  const have = new Set(
+    (cl.data?.items ?? []).filter((e) => e.locale === "en").map((e) => e.data?.key),
+  );
+  if (have.has("home.featured")) {
+    log("ui-copy demo override exists (home.featured)");
+  } else {
+    const res = await api("/_emdash/api/content/ui_copy", {
+      method: "POST",
+      body: JSON.stringify({
+        locale: "en",
+        slug: "home-featured",
+        data: { key: "home.featured", value: "Editor's picks" },
+      }),
+    });
+    if (!res.ok) {
+      log(`ui-copy en seed FAILED: ${res.status} ${await res.text()}`);
+    } else {
+      const id = (await res.json())?.data?.item?.id;
+      await api(`/_emdash/api/content/ui_copy/${id}/publish`, { method: "POST", body: "{}" });
+      const z = await api("/_emdash/api/content/ui_copy", {
+        method: "POST",
+        body: JSON.stringify({
+          locale: "zh",
+          translationOf: id,
+          slug: "home-featured-zh",
+          data: { key: "home.featured", value: "编辑精选" },
+        }),
+      });
+      if (z.ok) {
+        const zid = (await z.json())?.data?.item?.id;
+        await api(`/_emdash/api/content/ui_copy/${zid}/publish`, { method: "POST", body: "{}" });
+      } else {
+        log(`ui-copy zh seed FAILED: ${z.status} ${await z.text()}`);
+      }
+      log("ui-copy demo override seeded (home.featured en/zh)");
+    }
+  }
+}
+
 // --- 7. self-check + output ---------------------------------------------
 const zhList = await (
   await api("/_emdash/api/content/products?limit=50&status=published&locale=zh")
@@ -279,6 +369,15 @@ if (!Array.isArray(tcheck.data?.translations)) {
   console.error("[init-backend] translations endpoint broken");
   process.exit(1);
 }
+const copyList = await (
+  await api("/_emdash/api/content/ui_copy?limit=100&status=published")
+).json();
+const copyCount = (copyList.data?.items ?? []).filter((e) => e.locale === "en").length;
+if (copyCount < 1) {
+  console.error("[init-backend] ui_copy collection missing or empty — seed.json edit did not apply");
+  process.exit(1);
+}
+log(`ui-copy: ${copyCount} published en override(s)`);
 
 writeFileSync("backend-info.json", JSON.stringify({ baseUrl, pat }, null, 2));
 console.log(`

@@ -1,5 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { shouldCache, cacheKey, remember, recall, type CacheEntry } from "./lib/cache-store";
+import { ensureUiCopy } from "./lib/copy";
 
 /**
  * SSR page cache (S14): serve HITs from the store, remember MISSes that
@@ -18,6 +19,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return new Response(hit.body, { status: hit.status, headers });
     }
   }
+
+  // Backend copy for the render below (60s memo; skipped on HITs). Runs
+  // before next() so t() sees the overlay during render; never throws.
+  await ensureUiCopy();
 
   const response = await next();
 

@@ -44,7 +44,8 @@ function env(): { base: string; pat: string } {
   return { base: base.replace(/\/$/, ""), pat };
 }
 
-async function api<T>(path: string): Promise<T> {
+/** Shared content-API fetch (PAT bearer); also used by `copy.ts`. */
+export async function api<T>(path: string): Promise<T> {
   const { base, pat } = env();
   const res = await fetch(`${base}${path}`, { headers: { Authorization: `Bearer ${pat}` } });
   if (!res.ok) throw new Error(`emdash ${path} → ${res.status}`);
