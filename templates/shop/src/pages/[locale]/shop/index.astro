@@ -16,9 +16,9 @@ const locale = Astro.params.locale as Locale;
 if (!isLocale(locale)) return notFoundResponse();
 const facets = parseFacets(Astro.url.searchParams);
 const products = await catalogProducts(locale);
-const { items, total, pageCount } = applyFacets(products, facets, site.pageSize);
-const categories = await listTerms("product_category");
 const currency = (await getSettings()).defaultCurrency ?? "USD";
+const { items, total, pageCount } = applyFacets(products, facets, site.pageSize, currency);
+const categories = await listTerms("product_category");
 ---
 <ShopView
   {locale}

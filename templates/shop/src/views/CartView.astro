@@ -122,35 +122,35 @@ const hasAddress = !!cart?.shippingAddress;
           )}
 
           <form method="post" action="/api/cart/shipping-location" class="panel">
-            <p class="label">Shipping</p>
+            <p class="label">{t("shipping.title", locale)}</p>
             <label>
-              Country
+              {t("shipping.country", locale)}
               <input name="country" value={cart.shippingAddress?.country ?? ""} placeholder="US" required />
             </label>
             <label>
-              Postal code
+              {t("shipping.postal", locale)}
               <input name="postalCode" value={cart.shippingAddress?.postalCode ?? ""} placeholder="10001" required />
             </label>
             <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
-            <button type="submit" class="ghost">Save address</button>
+            <button type="submit" class="ghost">{t("shipping.save", locale)}</button>
           </form>
 
           {hasAddress && rates.length > 0 && (
             <form method="post" action="/api/cart/shipping-method" class="panel">
-              <p class="label">Method</p>
+              <p class="label">{t("shipping.method", locale)}</p>
               {rates.map((r) => (
                 <label class="rate">
                   <input
                     type="radio"
                     name="methodId"
-                    value={r.id ?? ""}
-                    checked={cart.shippingMethod?.id === r.id}
+                    value={r.methodId ?? ""}
+                    checked={cart.shippingMethod?.id === r.methodId}
                   />
-                  {r.label ?? r.name} · {formatMoney(r.amount ?? r.price?.amount ?? 0, cart.currency)}
+                  {r.label} · {formatMoney(r.amount, r.amount?.currency ?? cart.currency)}
                 </label>
               ))}
               <input type="hidden" name="returnTo" value={localizePath("/cart", locale)} />
-              <button type="submit" class="ghost">Use method</button>
+              <button type="submit" class="ghost">{t("shipping.useMethod", locale)}</button>
             </form>
           )}
 

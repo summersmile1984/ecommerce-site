@@ -25,8 +25,8 @@ if (!term) return notFoundResponse();
 const facets = parseFacets(Astro.url.searchParams);
 const all = await catalogProducts(locale);
 const products = all.filter((p) => (p.terms?.product_category ?? []).some((c) => c.slug === slug));
-const { items, total, pageCount } = applyFacets(products, facets, 12);
 const currency = (await getSettings()).defaultCurrency ?? "USD";
+const { items, total, pageCount } = applyFacets(products, facets, 12, currency);
 ---
 <ShopView
   {locale}

@@ -28,16 +28,29 @@ describe("applyFacets", () => {
     p("Bundle", "BUN-1", 4499),
   ];
   it("filters by q across title and sku, sorts by price, slices pages", () => {
-    expect(applyFacets(ps, { sort: "new", page: 1, q: "tee" }, 12).total).toBe(1);
-    const asc = applyFacets(ps, { sort: "priceAsc", page: 1, q: "" }, 2);
+    expect(applyFacets(ps, { sort: "new", page: 1, q: "tee" }, 12, "USD").total).toBe(1);
+    const asc = applyFacets(ps, { sort: "priceAsc", page: 1, q: "" }, 2, "USD");
     expect(asc.total).toBe(3);
     expect(asc.pageCount).toBe(2);
     expect(asc.items[0].data.title).toBe("Mug");
-    const desc = applyFacets(ps, { sort: "priceDesc", page: 1, q: "" }, 12);
+    const desc = applyFacets(ps, { sort: "priceDesc", page: 1, q: "" }, 12, "USD");
     expect(desc.items[0].data.title).toBe("Bundle");
   });
+  it("sorts by the display currency; missing prices sort last both ways", () => {
+    const mixed = [
+      { data: { title: "EurOnly", sku: "E-1", prices: { EUR: { amount: 500 } } } },
+      { data: { title: "UsdCheap", sku: "U-1", prices: { USD: { amount: 100 } } } },
+      { data: { title: "UsdDear", sku: "U-2", prices: { USD: { amount: 900 } } } },
+    ] as unknown as Product[];
+    const asc = applyFacets(mixed, { sort: "priceAsc", page: 1, q: "" }, 12, "USD");
+    expect(asc.items.map((x) => x.data.title)).toEqual(["UsdCheap", "UsdDear", "EurOnly"]);
+    const eur = applyFacets(mixed, { sort: "priceAsc", page: 1, q: "" }, 12, "EUR");
+    expect(eur.items.map((x) => x.data.title)).toEqual(["EurOnly", "UsdCheap", "UsdDear"]);
+    const desc = applyFacets(mixed, { sort: "priceDesc", page: 1, q: "" }, 12, "USD");
+    expect(desc.items[2].data.title).toBe("EurOnly");
+  });
   it("page beyond range yields empty items but valid counts", () => {
-    const out = applyFacets(ps, { sort: "new", page: 9, q: "" }, 2);
+    const out = applyFacets(ps, { sort: "new", page: 9, q: "" }, 2, "USD");
     expect(out.items).toHaveLength(0);
     expect(out.pageCount).toBe(2);
   });

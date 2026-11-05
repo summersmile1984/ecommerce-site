@@ -7,12 +7,11 @@ export interface CartLine {
   lineSubtotal: { currency: string; amount: number };
   title: string;
 }
+/** Rate option from POST /cart/shipping-methods (ShippingRateOption wire). */
 export interface ShippingRate {
-  id?: string;
+  methodId?: string;
   label?: string;
-  name?: string;
-  amount?: number;
-  price?: { amount: number };
+  amount?: { currency?: string; amount?: number };
 }
 export interface Cart {
   currency: string;

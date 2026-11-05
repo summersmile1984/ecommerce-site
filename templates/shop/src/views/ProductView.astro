@@ -39,16 +39,23 @@ interface ReviewDto {
 interface ReviewsResponse {
   reviews?: ReviewDto[];
   summary?: { count?: number; average?: number } | null;
+  cursor?: string | null;
+  hasMore?: boolean;
 }
 let reviews: ReviewDto[] = [];
 let summary: { count?: number; average?: number } | null = null;
+let nextCursor: string | null = null;
 try {
-  const res = await forwardJson(`${CART_BASE}/reviews/list?productId=${encodeURIComponent(product.id)}`, {
+  const pageCursor = Astro.url.searchParams.get("reviewCursor");
+  const qs = new URLSearchParams({ productId: product.id, limit: "5" });
+  if (pageCursor) qs.set("cursor", pageCursor);
+  const res = await forwardJson(`${CART_BASE}/reviews/list?${qs}`, {
     method: "GET",
   });
   const json = (await res.json()) as ReviewsResponse;
   reviews = json.reviews ?? [];
   summary = json.summary ?? null;
+  nextCursor = json.hasMore && json.cursor ? json.cursor : null;
 } catch {
   /* reviews are non-critical */
 }
@@ -114,6 +121,11 @@ const crumbs = [
               </li>
             ))}
           </ul>
+          {nextCursor && (
+            <p class="pager">
+              <a href={`?reviewCursor=${encodeURIComponent(nextCursor)}#reviews`}>→ {t("pager.next", locale)}</a>
+            </p>
+          )}
           <ReviewForm productId={product.id} {locale} returnTo={path} />
         </section>
       </div>

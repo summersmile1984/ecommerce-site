@@ -27,6 +27,11 @@ describe("shop seo", () => {
     const ld = jsonLdProduct({ product: p, url: "https://x", currency: "USD" });
     expect(String((ld.offers as Record<string, unknown>).availability)).toContain("OutOfStock");
   });
+  it("omits offers when the requested currency has no price (never 0.00)", () => {
+    const bare = { data: { ...product.data, prices: {} } } as unknown as Product;
+    const ld = jsonLdProduct({ product: bare, url: "https://x", currency: "EUR" });
+    expect(ld.offers).toBeUndefined();
+  });
   it("alternates include x-default to en", () => {
     const html = alternateLinks("https://ex.com", "/shop", [
       { locale: "en", hreflang: "en", href: "https://ex.com/shop" },

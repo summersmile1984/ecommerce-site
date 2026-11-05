@@ -7,9 +7,9 @@ import { site } from "../../config/site";
 
 const facets = parseFacets(Astro.url.searchParams);
 const products = await catalogProducts("en");
-const { items, total, pageCount } = applyFacets(products, facets, site.pageSize);
-const categories = await listTerms("product_category");
 const currency = (await getSettings()).defaultCurrency ?? "USD";
+const { items, total, pageCount } = applyFacets(products, facets, site.pageSize, currency);
+const categories = await listTerms("product_category");
 ---
 <ShopView
   locale="en"

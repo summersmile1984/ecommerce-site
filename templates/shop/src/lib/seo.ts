@@ -42,19 +42,24 @@ export function jsonLdProduct(opts: {
   const { product, url, currency } = opts;
   const amount = product.data.prices?.[currency]?.amount;
   const inStock = product.data.stock_status !== "outofstock" && product.data.stock_status !== "onbackorder";
-  const major = amount === undefined ? "0.00" : ZERO_DECIMAL[currency] ? String(amount) : (amount / 100).toFixed(2);
+  const major = amount === undefined ? undefined : ZERO_DECIMAL[currency] ? String(amount) : (amount / 100).toFixed(2);
   return {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.data.title,
     sku: product.data.sku,
-    offers: {
-      "@type": "Offer",
-      url,
-      price: major,
-      priceCurrency: currency,
-      availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-    },
+    // No price for the requested currency → omit offers entirely; a "0.00"
+    // offer would advertise the wrong price to crawlers.
+    offers:
+      major === undefined
+        ? undefined
+        : {
+            "@type": "Offer",
+            url,
+            price: major,
+            priceCurrency: currency,
+            availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          },
   };
 }
 

@@ -156,11 +156,25 @@ export async function getSettings(): Promise<Settings> {
 
 const ZERO_DECIMAL: Record<string, true> = { JPY: true, KRW: true, VND: true, CLP: true };
 
-export function formatMoney(minor: number | undefined | null, currency: string): string {
-  if (minor === undefined || minor === null) return "—";
-  // Zero-decimal currencies store major units directly — never divide.
-  const value = ZERO_DECIMAL[currency] ? minor : minor / 100;
-  return `${currency} ${value.toFixed(ZERO_DECIMAL[currency] ? 0 : 2)}`;
+type MoneyInput = number | { currency?: string; amount?: number } | null | undefined;
+
+export function formatMoney(minor: MoneyInput, currency: string): string {
+  // Accept minor units OR a Money object (backend rate options ship
+  // {currency, amount}); anything non-numeric renders as an em dash — the
+  // Money-through-Number() path used to produce "USD NaN".
+  let value: MoneyInput = minor;
+  let code = currency;
+  if (minor && typeof minor === "object") {
+    code = minor.currency ?? code;
+    value = minor.amount;
+  }
+  if (value === undefined || value === null || typeof value !== "number" || Number.isNaN(value)) {
+    return "—";
+  }
+  // Zero-decimal currencies (JPY/KRW/VND/CLP) store major units — never divide.
+  const zeroDec = ZERO_DECIMAL[code];
+  const major = zeroDec ? value : value / 100;
+  return `${code} ${major.toFixed(zeroDec ? 0 : 2)}`;
 }
 
 /** Exact-currency price or null (backend money math throws on mixed currencies). */

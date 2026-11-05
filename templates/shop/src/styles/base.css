@@ -48,4 +48,4 @@ button {
   }
 }
 
-.tabular { font-variant-numeric: tabular-nums; }
+.tabular { font-variant-numeric: tabular-nums; white-space: nowrap; }

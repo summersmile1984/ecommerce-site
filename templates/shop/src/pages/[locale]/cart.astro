@@ -3,7 +3,7 @@ import CartView from "../../views/CartView.astro";
 import { forwardJson, relayCookie, CART_BASE } from "../../lib/relay";
 import { getSettings } from "../../lib/emdash";
 import { site, type Locale } from "../../config/site";
-import type { Cart } from "../../lib/cart-types";
+import type { Cart, ShippingRate } from "../../lib/cart-types";
 import { isLocale } from "../../config/site";
 import { notFoundResponse } from "../../lib/not-found";
 
@@ -20,7 +20,7 @@ const cartRes = await forwardJson(`${CART_BASE}/cart`, { method: "GET" }, cookie
 const cartJson = (await cartRes.json()) as { cart?: Cart };
 const cart = cartJson.cart ?? null;
 
-let rates: { id?: string; label?: string; name?: string; amount?: number }[] = [];
+let rates: ShippingRate[] = [];
 if (cart && cart.shippingAddress) {
   const rateRes = await forwardJson(`${CART_BASE}/cart/shipping-methods`, { method: "POST", body: "{}" }, cookie);
   const rateJson = (await rateRes.json()) as { options?: typeof rates };

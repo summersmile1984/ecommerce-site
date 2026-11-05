@@ -32,15 +32,14 @@ if (!draft) return new Response("Not found", { status: 404 });
         const res = await fetch(`/api/orders/draft?id=${encodeURIComponent(draft)}`);
         const json = (await res.json()) as {
           status?: string;
+          display?: string;
           order?: { id?: string; total?: { currency: string; amount: number } };
         };
         if (json.status === "ready" && json.order) {
           status.hidden = true;
           orderBox.hidden = false;
-          const amount = json.order.total
-            ? `${json.order.total.currency} ${(json.order.total.amount / 100).toFixed(2)}`
-            : "";
-          orderBox.textContent = `${json.order.id ?? ""} ${amount}`;
+          // display is pre-formatted server-side — no money math in the browser.
+          orderBox.textContent = `${json.order.id ?? ""}${json.display ? ` ${json.display}` : ""}`;
           return;
         }
         if (json.status === "failed") {

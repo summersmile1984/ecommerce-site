@@ -36,7 +36,7 @@ const { locale, cart, mode, error } = Astro.props;
           </tbody>
           <tfoot>
             <tr>
-              <td><strong>{t("cart.subtotal", locale)}</strong></td>
+              <td><strong>{t("cart.total", locale)}</strong></td>
               <td class="num tabular"><strong>{formatMoney(cart.total.amount, cart.total.currency)}</strong></td>
             </tr>
           </tfoot>

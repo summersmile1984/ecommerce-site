@@ -22,10 +22,17 @@ describe("pickLocalized", () => {
 });
 
 describe("money (minor units)", () => {
-  it("formats with currency code and 2dp (JPY 0dp)", () => {
+  it("formats with currency code and2dp (JPY0dp)", () => {
     expect(formatMoney(1599, "USD")).toBe("USD 15.99");
     expect(formatMoney(4350, "JPY")).toBe("JPY 4350");
     expect(formatMoney(undefined, "USD")).toBe("—");
+  });
+  it("accepts Money objects and never prints NaN", () => {
+    // backend rate options ship {currency, amount} — Money wins over arg
+    expect(formatMoney({ currency: "USD", amount: 500 }, "EUR")).toBe("USD 5.00");
+    expect(formatMoney({ amount: 4350, currency: "JPY" }, "USD")).toBe("JPY 4350");
+    expect(formatMoney(NaN as unknown as number, "USD")).toBe("—");
+    expect(formatMoney("500" as unknown as number, "USD")).toBe("—");
   });
   it("priceOf returns exact-currency price or null (no mixed-currency fallback)", () => {
     const p = mk("x", "en", "g", 900);

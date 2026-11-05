@@ -6,7 +6,7 @@
  * carries its en/zh hreflang pair, product entries carry lastmod.
  */
 import type { APIRoute } from "astro";
-import { catalogProducts, listTerms } from "../lib/emdash";
+import { catalogProducts } from "../lib/emdash";
 import { canonicalUrl, type Alternate } from "../lib/seo";
 import { site, siteUrl } from "../config/site";
 
@@ -47,9 +47,8 @@ export const GET: APIRoute = async () => {
   for (const path of ["/", "/shop"]) {
     entries.push({ path });
   }
-  // categories
-  const terms = await listTerms("product_category");
-  for (const term of terms) entries.push({ path: `/shop/c/${term.slug}` });
+  // No category URLs: /shop/c/* is a faceted browse state — noindex with a
+  // canonical to /shop (R3), so listing it here would contradict robots rules.
   // products: zh loc must use the translated slug when one exists
   // (review finding4: /zh/shop/<en-slug>404s for translated products)
   const products = await catalogProducts(site.defaultLocale);

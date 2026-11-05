@@ -35,7 +35,7 @@ const stockLabel = out
     <span class="dot"></span> {stockLabel}
   </p>
   <p class="price tabular">
-    {price ? formatMoney(price.amount, price.currency) : t("pdp.outOfStock", locale)}
+    {formatMoney(price?.amount ?? null, price?.currency ?? currency)}
   </p>
 </form>
 <style>

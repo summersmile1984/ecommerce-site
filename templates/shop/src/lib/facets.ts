@@ -23,6 +23,7 @@ export function applyFacets(
   products: Product[],
   facets: Facets,
   pageSize: number,
+  currency: string,
 ): { items: Product[]; total: number; pageCount: number } {
   const query = facets.q.toLowerCase();
   let items = query
@@ -33,10 +34,19 @@ export function applyFacets(
       )
     : [...products];
 
-  if (facets.sort === "priceAsc") {
-    items.sort((a, b) => (priceOf(a, "USD")?.amount ?? Infinity) - (priceOf(b, "USD")?.amount ?? Infinity));
-  } else if (facets.sort === "priceDesc") {
-    items.sort((a, b) => (priceOf(b, "USD")?.amount ?? -1) - (priceOf(a, "USD")?.amount ?? -1));
+  if (facets.sort === "priceAsc" || facets.sort === "priceDesc") {
+    // Sort by the currency the page DISPLAYS (S4: exact-currency only);
+    // products without it sort last in both directions.
+    const key = (p: Product) => priceOf(p, currency)?.amount ?? null;
+    const dir = facets.sort === "priceAsc" ? 1 : -1;
+    items.sort((a, b) => {
+      const ka = key(a);
+      const kb = key(b);
+      if (ka === null && kb === null) return 0;
+      if (ka === null) return 1;
+      if (kb === null) return -1;
+      return (ka - kb) * dir;
+    });
   }
 
   const total = items.length;
