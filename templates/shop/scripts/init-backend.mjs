@@ -91,6 +91,19 @@ config = config.replace(
   'plugins: edition === "native" ? [dashcommerce(), purgePlugin()] : [purgePlugin()],',
 );
 
+// Verification: each patch above is guarded by an includes() check — if the
+// guard said "missing" and the replace still left it missing, the upstream
+// anchor drifted. Never let that masquerade as a successful patch.
+for (const [what, ok] of [
+  ["i18n en/zh", config.includes('locales: ["en", "zh"]')],
+  ["fonts: false", config.includes("fonts: false")],
+  ["kv-route-cache provider", config.includes("kv-route-cache")],
+  ["purge plugin import", config.includes('from "./src/purge-plugin"')],
+  ["purge plugin wiring", config.includes("purgePlugin()")],
+]) {
+  if (!ok) log(`WARN: ${what} NOT applied — upstream anchor changed in astro.config.mjs`);
+}
+
 if (config !== original) {
   writeFileSync(configPath, config);
   log("astro.config.mjs patched (i18n en/zh, fonts:false, kv cache provider, purge plugin)");
@@ -115,6 +128,36 @@ if (existsSync(wrPath)) {
   if (wr !== wrOriginal) {
     writeFileSync(wrPath, wr);
     log("wrangler.jsonc patched (CACHE binding, PURGE_* vars)");
+  }
+  if (!wrOriginal.includes('"binding": "CACHE"') && !wr.includes('"binding": "CACHE"')) {
+    log("WARN: CACHE binding NOT added — kv_namespaces shape not recognized in wrangler.jsonc");
+  }
+  if (!wrOriginal.includes("PURGE_URL") && !wr.includes("PURGE_URL")) {
+    log("WARN: PURGE_* vars NOT added — no \"vars\": { anchor in wrangler.jsonc");
+  }
+}
+
+// --- 2e. mock gateway: credential-free fallback (local checkout e2e) -----
+// loadPaymentProviderCredentials() demands settings:<id>SecretKey, but plugin
+// KV is namespaced per plugin — a template plugin cannot write dashcommerce's
+// namespace, and the admin settings whitelist rejects unknown keys. The mock
+// provider is credential-free by design, so patch its loader in the CLONED
+// core (same anchor-drift discipline as the config patches above).
+const credPath = `${DIR}/packages/core/src/payment-provider/credentials.ts`;
+if (existsSync(credPath)) {
+  let cred = readFileSync(credPath, "utf8");
+  if (!cred.includes("template mock fallback")) {
+    const before = cred;
+    cred = cred.replace(
+      "\tconst secretKey = await kv.get<string>(`settings:${providerId}SecretKey`);\n\tif (!secretKey) return null;",
+      "\tconst secretKey =\n\t\t(await kv.get<string>(`settings:${providerId}SecretKey`)) ??\n\t\t// template mock fallback: the mock gateway is credential-free by design\n\t\t(providerId === \"mock\" ? \"mock-local\" : undefined);\n\tif (!secretKey) return null;",
+    );
+    if (cred === before) {
+      log("WARN: mock credential fallback NOT applied — credentials.ts anchor drifted");
+    } else {
+      writeFileSync(credPath, cred);
+      log("core patched: mock gateway credential-free fallback");
+    }
   }
 }
 
@@ -229,6 +272,30 @@ if (!tokenRes.ok) {
 }
 const pat = (await tokenRes.json()).data.token;
 log(`PAT created: ${pat.slice(0, 12)}…`);
+// Re-run rotation: keep exactly ONE shop-template token. Delete stale ones
+// only AFTER the new one exists (create-then-delete — deleting first would
+// leave zero usable tokens if creation failed).
+try {
+  const listed = await (
+    await fetch(`${baseUrl}/_emdash/api/admin/api-tokens`, {
+      headers: { "X-EmDash-Request": "1", Cookie: cookies.join("; ") },
+    })
+  ).json();
+  const stale = (listed.data?.items ?? []).filter(
+    (t) => t.name === "shop-template" && t.prefix && !pat.startsWith(t.prefix),
+  );
+  let removed = 0;
+  for (const t of stale) {
+    const del = await fetch(`${baseUrl}/_emdash/api/admin/api-tokens/${t.id}`, {
+      method: "DELETE",
+      headers: { "X-EmDash-Request": "1", Cookie: cookies.join("; ") },
+    });
+    if (del.ok) removed++;
+  }
+  if (removed) log(`token reuse: removed ${removed} stale shop-template token(s)`);
+} catch {
+  log("token reuse cleanup skipped (list/delete failed)");
+}
 
 const api = (path, init = {}) =>
   fetch(`${baseUrl}${path}`, {
@@ -380,6 +447,16 @@ if (copyCount < 1) {
 log(`ui-copy: ${copyCount} published en override(s)`);
 
 writeFileSync("backend-info.json", JSON.stringify({ baseUrl, pat }, null, 2));
+// Rotation invalidates the PAT the frontend .env still holds — keep it in
+// step when a local .env exists (README quick start fills it from output).
+if (existsSync(".env")) {
+  const envText = readFileSync(".env", "utf8");
+  const nextEnv = envText.replace(/^PAT=.*$/m, `PAT=${pat}`);
+  if (nextEnv !== envText) {
+    writeFileSync(".env", nextEnv);
+    log(".env PAT synced to the rotated token");
+  }
+}
 console.log(`
 [init-backend] DONE
   EMDASH_URL=${baseUrl}

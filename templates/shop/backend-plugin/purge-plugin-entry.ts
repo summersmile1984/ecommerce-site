@@ -18,6 +18,24 @@
  */
 
 import { definePlugin, type PluginContext } from "emdash";
+import {
+  createMockPaymentProvider,
+  registerPaymentProvider,
+} from "@dashcommerce/core/payment-provider";
+
+// Credential-free mock gateway for local/CI checkout e2e (R4): inert unless
+// `settings.paymentProvider = "mock"` — the default/stripe path never resolves
+// it. Registered at entry load so the runtime process owns the registry;
+// override:true because the module can evaluate twice (build codegen + serve).
+registerPaymentProvider(
+  createMockPaymentProvider({
+    supportedCurrencies: ["USD", "EUR"],
+    // Hosted create-session 409s on un-declared features (cart lines decide
+    // what's requested); the mock gateway never fails them, so declare all.
+    capabilities: { coupons: true, connect: true, subscriptions: true },
+  }),
+  { override: true },
+);
 
 // Dynamic by necessity: cloudflare:workers only exists on Workers runtimes.
 // Node dev/build must still load this module — fall back to process.env so
@@ -80,6 +98,10 @@ export function createPlugin() {
 		capabilities: ["content:read", "network:request"],
 		allowedHosts: ["localhost", "127.0.0.1"],
 		hooks: {
+			// Credential-free mock gateway: seed its KV credentials at boot so
+			// paymentProvider="mock" passes loadPaymentProviderCredentials (the
+			// admin settings whitelist blocks writing these keys). Idempotent;
+			// inert unless the provider is selected.
 			"content:afterSave": async (event, ctx) => {
 				await pushPurge(
 					event.collection,

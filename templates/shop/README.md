@@ -38,6 +38,7 @@ npm run dev                                           # http://localhost:4322
 - **设计**：`src/styles/tokens.css` 唯一来源（色板/字体/圆角）
 - **环境变量**（`.env`，模板自带加载器，shell 优先）：`EMDASH_URL`、`PAT`、`SITE_URL`、`PURGE_SECRET`
 - **端口约定**：后端4325 · 前端4322 · preview4323
+- **表单 POST 校验**：Astro `checkOrigin` 默认开启——浏览器表单自动携带 `Origin`，非浏览器客户端（curl/脚本）调 `POST /api/*` 必须带同源 `Origin` 头，否则403 “Cross-site POST form submissions are forbidden”
 
 ## Cache & auto-purge on save
 
@@ -74,6 +75,7 @@ npm run new-backend -- --dir ./backend --port 4325
 - 未配置密钥时页面显示 `checkout.notConfigured`（优雅降级，非崩溃）
 - embedded 模式本模板不支持（后端 `checkout/mode` 会返回，页面给出提示）
 - 测试卡：`4242 4242 4242 4242`（Stripe test mode）
+- **本地 e2e（无 Stripe 密钥）**：init-backend 会注册 credential-free 的 mock 网关（`paymentProvider="mock"` 选用；其免凭据 fallback 是对克隆 core `credentials.ts` 的带锚点补丁，2e 段，锚点漂移会 WARN）。启用后 `create-session` 直接 303 到 `/thank-you/<draft>?mock=1`，订单停在 `pending`（等网关 webhook）——用于验证重定向链路；`{"paymentProvider":"stripe"}` 一键恢复默认。
 
 ## Deploy（CF Worker）
 
@@ -101,7 +103,7 @@ npx wrangler deploy -c dist/server/wrangler.json
 
 ## SEO checklist（已自动化）
 
-`npm run seo-check -- --preview …`：PAT 零泄漏、绝对 canonical + host==SITE_URL、全页 hreflang/x-default、faceted 规则（`/shop` 可索引；sort/q 变体与分类页 noindex + canonical 正确）、PDP `Product` + 首页 `Organization/WebSite` JSON-LD、sitemap（24 locs：host/无尾斜杠/xhtml pairs/产品 lastmod）、无 RSS、缺译回退页 `/zh/shop/<en-only>`、缓存策略（`/shop` MISS→HIT、`/cart` 永不缓存）。
+`npm run seo-check -- --preview …`：PAT 零泄漏、绝对 canonical + host==SITE_URL、全页 hreflang/x-default、faceted 规则（`/shop` 可索引；sort/q 变体与分类页 noindex + canonical 正确）、PDP `Product` + 首页 `Organization/WebSite` JSON-LD、sitemap（16 locs：host/无尾斜杠/xhtml pairs/产品 lastmod；noindex 类目不入表）、无 RSS、缺译回退页 `/zh/shop/<en-only>`、缓存策略（`/shop` MISS→HIT、`/cart` 永不缓存）。
 
 ## 结构
 
