@@ -13,9 +13,11 @@ Node ≥20 · git · [bun](https://bun.sh)（`new-backend` 需要；模板自身
 ```bash
 npm install
 npm run new-backend -- --dir ./backend --port 4325   # clone + native edition + i18n + kv cache + purge 插件 + 双语商品 + PAT
-cp .env.example .env                                  # 填 EMDASH_URL / PAT / SITE_URL / PURGE_SECRET
+cp .env.example .env                                  # 填 EMDASH_URL / PAT / SITE_URL / PURGE_SECRET（PAT 在 new-backend 输出或 ./backend-info.json）
 npm run dev                                           # http://localhost:4322
 ```
+
+**build 也需要 `.env`**：`sitemap.xml` 在构建期从实时目录拉取全量 URL（S15 裁定），没有可用后端凭据时 `npm run build` 会在 sitemap 步骤报 “EMDASH_URL and PAT are required”。先跑 `new-backend` 并填好 `.env` 再构建。
 
 已有后端？跳过 `new-backend`（后端需 native edition 才有 cart/checkout 路由；`astro.config` 配 `i18n: { locales, defaultLocale }`）。
 
