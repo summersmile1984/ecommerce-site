@@ -7,7 +7,7 @@
 | 模板 | 说明 | 文档 |
 |---|---|---|
 | `templates/shop` | 双语（en/zh）Astro **SSR** 电商模板 · Gallery retail 设计 · Stripe hosted 全链路 · 前后端分离 · 运营数据与界面文案均可后端管理 · 可部署 Cloudflare Worker | [`templates/shop/README.md`](templates/shop/README.md) |
-| `templates/blog` | 双语 EmDash 内容站模板（SSR + 增量 SSG 构建） | [`templates/blog/README.md`](templates/blog/README.md) |
+| `templates/blog` | 双语 EmDash **SSG** 内容站模板（Editorial journal 设计 · SEO 全套 · 增量构建 + build hook 触发） | [`templates/blog/README.md`](templates/blog/README.md) |
 
 两个模板的零后端代码约束：`new-backend` 脚本负责后端 provisioning（native edition、i18n、KV cache provider、purge 插件、双语商品、可选 Stripe、ui_copy 文案集合），模板只消费后端 API。
 
