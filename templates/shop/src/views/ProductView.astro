@@ -5,8 +5,9 @@ import ReviewForm from "../components/ReviewForm.astro";
 import { getSettings } from "../lib/emdash";
 import { forwardJson, CART_BASE } from "../lib/relay";
 import { canonicalUrl, jsonLdProduct, jsonLdBreadcrumb } from "../lib/seo";
-import { t } from "../i18n/ui";
+import { t, productTypeLabel } from "../i18n/ui";
 import { localizePath } from "../i18n/routing";
+import { posterFor } from "../lib/poster";
 import type { Locale } from "../config/site";
 import type { Product } from "../lib/emdash";
 
@@ -19,6 +20,10 @@ const { product, locale, translations } = Astro.props;
 const currency = (await getSettings()).defaultCurrency ?? "USD";
 const path = localizePath(`/shop/${product.slug}`, locale);
 const url = canonicalUrl(Astro.site!.toString(), path);
+// Real image when the backend has one, else the same poster field as the cards.
+const kind = product.data.type ?? "simple";
+const poster = posterFor(kind, productTypeLabel(kind, locale));
+const productImage = product.data.featured_image as { url?: string; alt?: string } | null | undefined;
 
 // description: plain string or portable-text array
 const rawDesc = product.data.description;
@@ -91,7 +96,27 @@ const crumbs = [
       <a href={localizePath("/shop", locale)}>← {t("shop.title", locale)}</a>
     </nav>
     <div class="cols">
-      <div class="art" data-kind={product.data.type ?? "simple"} aria-hidden="true"></div>
+      {
+        productImage ? (
+          <div class="art" aria-hidden="true">
+            <img
+              class="art-img"
+              src={productImage.url}
+              alt={productImage.alt ?? product.data.title}
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+        ) : (
+          <div
+            class="art poster"
+            aria-hidden="true"
+            style={`--poster-bg:${poster.bg};--poster-ink:${poster.ink}`}
+          >
+            <span class="poster-label">{poster.label}</span>
+          </div>
+        )
+      }
       <div class="info">
         <h1>{product.data.title}</h1>
         <AddToCartForm {product} {locale} {currency} returnTo={path} />
@@ -147,8 +172,8 @@ const crumbs = [
   }
   .cols {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: var(--space-5);
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: var(--gap-block);
     margin-top: var(--space-4);
   }
   @media (max-width: 52rem) {
@@ -157,16 +182,39 @@ const crumbs = [
     }
   }
   .art {
-    aspect-ratio: 4 / 3;
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
-    background: repeating-linear-gradient(135deg, #efe9e0 0 14px, #e7e0d5 14px 24px);
+    aspect-ratio: 4 / 5;
+    border: 0;
+    overflow: hidden;
+    background: var(--poster-bg, #efe9e0);
   }
-  .art[data-kind="digital"] {
-    background: repeating-linear-gradient(45deg, #e9eef4 0 14px, #dfe7f0 14px 28px);
+  .art-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .art.poster {
+    display: grid;
+    place-items: center;
+    color: var(--poster-ink, #241f1a);
+    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px);
+  }
+  .art.poster .poster-label {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-3);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 0 var(--space-3);
   }
   h1 {
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-2);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
     margin: 0;
   }
   .desc p {

@@ -171,9 +171,9 @@ const hasAddress = !!cart?.shippingAddress;
     font-size: clamp(2rem, 5vw, 3rem);
   }
   .banner {
-    border-left: 3px solid var(--accent);
-    padding: 0.5rem 1rem;
-    background: rgb(200 68 42 / 0.08);
+    border-left: 2px solid var(--accent);
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
   }
   .empty {
     color: var(--muted);
@@ -201,10 +201,13 @@ const hasAddress = !!cart?.shippingAddress;
   }
   .num {
     text-align: right;
+    font-family: var(--font-display);
+    font-weight: 700;
   }
   tfoot .grand td {
-    border-top: 2px solid var(--ink);
-    font-size: 1.05rem;
+    border-top: var(--rule);
+    font-size: var(--display-3);
+    letter-spacing: -0.02em;
   }
   .inline {
     display: inline-flex;

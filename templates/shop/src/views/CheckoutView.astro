@@ -65,9 +65,9 @@ const { locale, cart, mode, error } = Astro.props;
     font-size: clamp(2rem, 5vw, 3rem);
   }
   .banner {
-    border-left: 3px solid var(--accent);
-    padding: 0.5rem 1rem;
-    background: rgb(200 68 42 / 0.08);
+    border-left: 2px solid var(--accent);
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
   }
   .note {
     color: var(--muted);
@@ -92,16 +92,17 @@ const { locale, cart, mode, error } = Astro.props;
   }
   .num {
     text-align: right;
+    font-family: var(--font-display);
+    font-weight: 700;
   }
   button {
-    background: var(--accent);
+    background: var(--ink);
     color: var(--paper);
     border: 0;
-    border-radius: var(--radius);
-    padding: 0.6rem 1.2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    border-radius: 0;
+    padding: var(--space-4);
+    font-weight: 700;
+    letter-spacing: 0.04em;
     width: 100%;
   }
   button:disabled {
