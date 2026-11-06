@@ -43,9 +43,6 @@ const stockLabel = out
     display: grid;
     gap: var(--space-3);
     margin: var(--space-4) 0;
-    padding: var(--space-3);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
   }
   .row {
     display: flex;
@@ -55,9 +52,9 @@ const stockLabel = out
   .qty {
     display: grid;
     gap: 0.25rem;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
     color: var(--muted);
   }
   .qty input {
@@ -66,18 +63,19 @@ const stockLabel = out
     padding: 0.4rem 0.5rem;
     background: transparent;
     color: var(--ink);
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
+    border: 0;
+    border-bottom: var(--rule);
+    border-radius: 0;
   }
   button {
-    background: var(--accent);
+    width: 100%;
+    background: var(--ink);
     color: var(--paper);
     border: 0;
-    border-radius: var(--radius);
-    padding: 0.55rem 1.2rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    border-radius: 0;
+    padding: var(--space-4);
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
   button:disabled {
     background: var(--muted);
@@ -102,6 +100,9 @@ const stockLabel = out
   }
   .price {
     margin: 0;
-    font-size: 1.3rem;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--display-3);
+    letter-spacing: -0.02em;
   }
 </style>

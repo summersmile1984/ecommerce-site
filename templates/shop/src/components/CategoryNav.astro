@@ -32,18 +32,24 @@ const { locale, terms, active } = Astro.props;
 <style>
   .cats {
     display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
+    gap: var(--space-4);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
     margin-bottom: var(--space-4);
   }
+  .cats::-webkit-scrollbar {
+    display: none;
+  }
   .cat {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
     text-decoration: none;
     color: var(--muted);
     padding-bottom: 0.2rem;
-    border-bottom: 2px solid transparent;
+    border-bottom: 1px solid transparent;
   }
   .cat:hover {
     color: var(--ink);

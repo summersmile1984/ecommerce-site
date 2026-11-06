@@ -2,6 +2,7 @@
 import { priceOf, type Product } from "../lib/emdash";
 import { localizePath } from "../i18n/routing";
 import { productTypeLabel } from "../i18n/ui";
+import { posterFor } from "../lib/poster";
 import type { Locale } from "../config/site";
 import Price from "./Price.astro";
 
@@ -15,50 +16,97 @@ const href = localizePath(`/shop/${product.slug}`, locale);
 const price = priceOf(product, currency);
 const out = product.data.stock_status === "outofstock";
 const zh = product.locale !== locale; // untranslated product served via fallback
-// Honest placeholder: demo catalog ships without images — type-derived panel, never fake photos.
 const kind = product.data.type ?? "simple";
+// Real image when the backend has one; otherwise a generated poster field.
+const image = product.data.featured_image as { url?: string; alt?: string } | null | undefined;
+const poster = posterFor(kind, productTypeLabel(kind, locale));
 ---
 <article class="card">
-  <a class="art" href={href} data-kind={kind} aria-hidden="true" tabindex="-1"></a>
+  {
+    image?.url ? (
+      <a class="art" href={href} aria-hidden="true" tabindex="-1">
+        <img
+          class="art-img"
+          src={image.url}
+          alt={image.alt ?? product.data.title}
+          loading="lazy"
+          decoding="async"
+        />
+      </a>
+    ) : (
+      <a
+        class="art poster"
+        href={href}
+        data-texture={poster.texture}
+        style={`--poster-bg:${poster.bg};--poster-ink:${poster.ink}`}
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <span class="poster-label">{poster.label}</span>
+      </a>
+    )
+  }
   <div class="info">
     <h3><a href={href}>{product.data.title}</a></h3>
     <p class="meta">
       <Price minor={price?.amount ?? null} currency={price?.currency ?? currency} />
       <span class:list={["dot", out && "out"]}></span>
-      <span class="kind">{productTypeLabel(kind, locale)}</span>
+      <span class="kind">{poster.label}</span>
       {zh && <span class="fallback">EN</span>}
     </p>
   </div>
 </article>
 <style>
   .card {
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
-    overflow: hidden;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
   .art {
     display: block;
-    aspect-ratio: 4 / 3;
-    background:
-      repeating-linear-gradient(135deg, var(--surface, #efe9e0) 0 12px, #e7e0d5 12px 24px);
-    border-bottom: 1px solid var(--hairline);
+    aspect-ratio: 1 / 1;
+    background: var(--surface, #efe9e0);
+    border-bottom: var(--rule);
+    overflow: hidden;
   }
-  .art[data-kind="digital"] {
-    background: repeating-linear-gradient(45deg, #e9eef4 0 14px, #dfe7f0 14px 28px);
+  .art-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-  .art[data-kind="subscription"] {
-    background: repeating-linear-gradient(90deg, #efe4e4 0 10px, #e6d6d6 10px 20px);
+  .poster {
+    display: grid;
+    place-items: center;
+    background: var(--poster-bg);
+    color: var(--poster-ink);
+  }
+  .poster[data-texture="grid"] {
+    background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px);
+  }
+  .poster[data-texture="grain"] {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 6px 6px;
+  }
+  .poster-label {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: var(--display-3);
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    padding: 0 var(--space-3);
+    text-align: center;
   }
   .info {
-    padding: var(--space-3);
+    padding: var(--space-3) 0 0;
     display: grid;
     gap: var(--space-1);
   }
   h3 {
     margin: 0;
     font-size: 1.1rem;
+    letter-spacing: -0.02em;
   }
   h3 a {
     text-decoration: none;
@@ -72,23 +120,26 @@ const kind = product.data.type ?? "simple";
     display: flex;
     gap: var(--space-2);
     align-items: center;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     color: var(--muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.1em;
   }
   .dot {
     width: 0.5rem;
     height: 0.5rem;
     border-radius: 50%;
     background: #3f9d63;
+    flex: none;
   }
   .dot.out {
     background: var(--muted);
   }
+  .kind {
+    white-space: nowrap;
+  }
   .fallback {
     border: 1px solid var(--hairline);
-    border-radius: var(--radius);
     padding: 0 0.35rem;
   }
 </style>
