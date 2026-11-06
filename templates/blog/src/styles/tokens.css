@@ -1,11 +1,11 @@
 :root {
-  --paper: #faf7f2;
-  --ink: #1a1714;
-  --accent: #c8442a;
-  --hairline: #e2dcd2;
-  --muted: #6e6559;
-  --radius: 3px;
-  --measure: 68ch;
+  --paper: #fbfaf7;
+  --ink: #14130f;
+  --accent: #2f3aa3;
+  --hairline: #e3e0d8;
+  --muted: #726c61;
+  --radius: 2px;
+  --measure: 66ch;
   --font-display: "Fraunces Variable", Georgia, serif;
   --font-body: "Archivo Variable", system-ui, sans-serif;
   --space-1: 0.25rem;
@@ -14,18 +14,24 @@
   --space-4: 1.5rem;
   --space-5: 3rem;
   --space-6: 5rem;
+  --gap-block: 3rem;
+  --gap-section: 6rem;
+  --column: 12;
+  --display-1: clamp(2.5rem, 6vw, 4.5rem);
+  --display-2: clamp(1.8rem, 3.4vw, 2.8rem);
+  --display-3: clamp(1.25rem, 1.8vw, 1.6rem);
+  --rule: 1px solid var(--hairline);
 }
 :root[data-theme="dark"] {
-  --paper: #171411;
-  --ink: #f0ebe3;
-  --hairline: #35302a;
-  --muted: #9b9184;
+  --paper: #121110;
+  --ink: #f3f1ea;
+  --accent: #8f9bff;
+  --hairline: #2a2926;
+  --muted: #9d978b;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #171411;
-    --ink: #f0ebe3;
-    --hairline: #35302a;
-    --muted: #9b9184;
+@media (max-width: 30rem) {
+  :root {
+    --display-1: clamp(2rem, 9vw, 3rem);
+    --gap-section: 3rem;
   }
 }
