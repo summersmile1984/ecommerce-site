@@ -37,6 +37,13 @@ npm run dev
 - **后端**：仅 `EMDASH_URL` + `PAT`（构建期环境变量；PAT 永不进客户端产物，`seo-check` 会 grep 验证）
 - **站点地址**：`SITE_URL`（canonical / sitemap / RSS 绝对地址用）
 
+## 设计（Editorial Grid / Magazine）
+
+- **独立色板**：纸 `#fbfaf7` / 墨 `#14130f` / 靛蓝 `#2f3aa3`（暗色 `#121110` / `#8f9bff`）——与 shop 模板的 Bold Minimal 是两套不同的视觉系统
+- **12 栏网格**：文章正文 8 栏 + 目录侧栏 3 栏（≤52rem 塌成单栏）；列表首篇跨 8 栏，其余 4 栏
+- **杂志排版**：标题 Fraunces 600 `--display-1`（`clamp(2.5rem,6vw,4.5rem)`）、首字下沉 4em（**仅 `:lang(en)`**，中文不适用）、pull quote 靛蓝左边线 + 衬线 1.5em、图注小字全大写
+- **视觉门禁**：`npm run visual-check` 断言 360/768/1280 × 明暗两主题无横向溢出（需 ego-browser CLI）
+
 ## 多语言架构
 
 - 路由：Astro i18n，`prefixDefaultLocale: false` —— en 无前缀（`/blog`）、zh 前缀（`/zh/blog`）

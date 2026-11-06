@@ -63,21 +63,9 @@ const pairs = [
         )
       }
     </header>
-    {
-      headings.length > 1 && (
-        <aside class="toc">
-          <p class="toc-title">{t("blog.toc", locale)}</p>
-          <ol>
-            {headings.map((h) => (
-              <li class={`d${h.depth}`}>
-                <a href={`#${h.id}`}>{h.text}</a>
-              </li>
-            ))}
-          </ol>
-        </aside>
-      )
-    }
-    <PortableText body={post.data.body} />
+    <div class="post-layout">
+      <div class="post-body">
+        <PortableText body={post.data.body} title={post.data.title} />
     <nav class="post-nav">
       {
         prev && (
@@ -108,6 +96,22 @@ const pairs = [
         </section>
       )
     }
+      </div>
+      {
+        headings.length > 1 && (
+          <aside class="toc">
+            <p class="toc-title">{t("blog.toc", locale)}</p>
+            <ol>
+              {headings.map((h) => (
+                <li class={`d${h.depth}`}>
+                  <a href={`#${h.id}`}>{h.text}</a>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        )
+      }
+    </div>
   </article>
 </BaseLayout>
 <style>
@@ -118,9 +122,13 @@ const pairs = [
     position: relative;
   }
   .post-head h1 {
-    font-size: clamp(2.2rem, 6vw, 3.6rem);
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--display-1);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
     margin: var(--space-2) 0 var(--space-4);
-    max-width: 20ch;
+    max-width: 16ch;
   }
   .meta {
     text-transform: uppercase;
@@ -135,12 +143,46 @@ const pairs = [
     border-left: 2px solid var(--accent);
     padding-left: 0.5rem;
   }
+  .post-layout {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gap-block);
+    align-items: start;
+  }
+  .post-body {
+    grid-column: 1 / span 8;
+    min-width: 0;
+  }
   .toc {
-    border: 1px solid var(--hairline);
-    border-radius: var(--radius);
-    padding: var(--space-3);
-    margin-bottom: var(--space-5);
-    max-width: 24rem;
+    grid-column: 10 / span 3;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    position: sticky;
+    top: var(--space-4);
+    border-top: var(--rule);
+    padding-top: var(--space-3);
+    font-size: 0.85rem;
+  }
+  @media (max-width: 52rem) {
+    /* 12 tracks + gaps do not fit a phone — single column instead */
+    .post-layout {
+      grid-template-columns: 1fr;
+    }
+    .post-body {
+      grid-column: auto;
+    }
+    .toc {
+      grid-column: auto;
+      position: static;
+    }
+  }
+  /* :global() — PortableText's markup carries no scope attribute */
+  :lang(en) .post-body :global(p:first-of-type)::first-letter {
+    font-family: var(--font-display);
+    font-size: 4em;
+    float: left;
+    line-height: 0.82;
+    padding-right: 0.08em;
   }
   .toc ol {
     list-style: none;
@@ -166,13 +208,6 @@ const pairs = [
     font-size: 0.75rem;
     color: var(--muted);
     margin: 0 0 var(--space-2);
-  }
-  @media (min-width: 60rem) {
-    .toc {
-      position: absolute;
-      left: calc(100% + 2rem);
-      top: var(--space-5);
-    }
   }
   .post-nav {
     display: flex;

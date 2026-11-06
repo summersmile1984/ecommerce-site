@@ -27,7 +27,9 @@ const path = localizePath(basePath, locale) + (page > 1 ? `/page/${page}` : "");
   <div class="wrap">
     <h1 class="page-title">{title}</h1>
     {posts.length === 0 && <p class="empty">{t("search.empty", locale)}</p>}
-    {posts.map((p, i) => <PostCard post={p} {locale} index={page === 1 ? i + 1 : undefined} />)}
+    <div class="grid">
+      {posts.map((p, i) => <PostCard post={p} {locale} index={page === 1 ? i + 1 : undefined} />)}
+    </div>
     <Pagination {page} {pageCount} {basePath} {locale} />
   </div>
 </BaseLayout>
@@ -36,6 +38,33 @@ const path = localizePath(basePath, locale) + (page > 1 ? `/page/${page}` : "");
     max-width: 64rem;
     margin: 0 auto;
     padding: var(--space-5) var(--space-3);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gap-block);
+  }
+  /* :global() — the cards are child components, so this scope cannot
+     reach them (Astro scopes styles to the component that renders them) */
+  .grid > :global(:first-child) {
+    grid-column: span 8;
+  }
+  .grid > :global(:not(:first-child)) {
+    grid-column: span 4;
+  }
+  .grid > :global(:first-child) :global(h2) {
+    font-size: var(--display-2);
+    line-height: 1.1;
+  }
+  @media (max-width: 52rem) {
+    /* 12 tracks + 3rem gaps cannot fit a phone — drop to one column */
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .grid > :global(:first-child),
+    .grid > :global(:not(:first-child)) {
+      grid-column: auto;
+    }
   }
   .page-title {
     font-size: clamp(2.2rem, 6vw, 3.5rem);

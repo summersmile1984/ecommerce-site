@@ -3,8 +3,10 @@ import { slugifyHeading } from "../lib/toc";
 
 interface Props {
   body: unknown;
+  /** Fallback alt text for figures without a caption. */
+  title?: string;
 }
-const { body } = Astro.props;
+const { body, title = "" } = Astro.props;
 const blocks = Array.isArray(body)
   ? (body as { style?: string; children?: { text?: string }[] }[])
   : [];
@@ -15,6 +17,24 @@ const blocks = Array.isArray(body)
       const text = (b.children ?? []).map((c) => c.text ?? "").join("");
       if (b.style === "h2") return <h2 id={slugifyHeading(text)} set:html={text} />;
       if (b.style === "h3") return <h3 id={slugifyHeading(text)} set:html={text} />;
+      if (b.style === "blockquote" || b.style === "quote") {
+        return <blockquote set:html={text} />;
+      }
+      if (b.style === "figure" || b.style === "image") {
+        const url =
+          (b as { asset?: { url?: string } }).asset?.url ??
+          (b as { url?: string }).url ??
+          (b as { src?: string }).src ??
+          "";
+        const caption = (b as { caption?: string }).caption ?? "";
+        if (!url) return null;
+        return (
+          <figure>
+            <img src={url} alt={caption || title} loading="lazy" decoding="async" />
+            {caption && <figcaption>{caption}</figcaption>}
+          </figure>
+        );
+      }
       return <p set:html={text} />;
     })
   }
@@ -22,6 +42,32 @@ const blocks = Array.isArray(body)
 <style is:global>
   .prose {
     max-width: var(--measure);
+    line-height: 1.7;
+  }
+  .prose blockquote {
+    margin: var(--gap-block) 0;
+    padding-left: var(--space-4);
+    border-left: 3px solid var(--accent);
+    font-family: var(--font-display);
+    font-size: 1.5em;
+    line-height: 1.25;
+  }
+  .prose figure {
+    margin: var(--gap-block) 0;
+  }
+  .prose figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+  }
+  .prose figcaption {
+    margin-top: var(--space-2);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
   }
   .prose h2 {
     margin-top: var(--space-5);
@@ -34,6 +80,6 @@ const blocks = Array.isArray(body)
     scroll-margin-top: 5rem;
   }
   .prose p {
-    margin: 0 0 var(--space-3);
+    margin: 0 0 var(--gap-block);
   }
 </style>
