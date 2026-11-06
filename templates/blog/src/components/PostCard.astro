@@ -30,6 +30,19 @@ const zh = post.locale !== locale; // 回退标记
     gap: var(--space-5);
     padding: var(--space-5) 0;
     border-bottom: var(--rule);
+    min-width: 0;
+  }
+  .row-body {
+    min-width: 0;
+  }
+  @media (max-width: 52rem) {
+    .row {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .idx {
+      font-size: 1.4rem;
+    }
   }
   .idx {
     font-family: var(--font-display);

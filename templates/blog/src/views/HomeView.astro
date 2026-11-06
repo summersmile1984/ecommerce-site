@@ -17,9 +17,11 @@ const { locale, posts, categories } = Astro.props;
   <div class="wrap">
     <section class="hero">
       <h1>{t("site.name", locale)}</h1>
-      <p class="tag">{t("home.latest", locale)}</p>
+      <p class="eyebrow">{t("home.latest", locale)}</p>
     </section>
-    {posts.map((p, i) => <PostCard post={p} {locale} index={i + 1} />)}
+    <div class="grid">
+      {posts.map((p, i) => <PostCard post={p} {locale} index={i + 1} />)}
+    </div>
     <section class="cats">
       <h2>{t("home.categories", locale)}</h2>
       <ul>
@@ -35,6 +37,33 @@ const { locale, posts, categories } = Astro.props;
     max-width: 64rem;
     margin: 0 auto;
     padding: var(--space-5) var(--space-3);
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--gap-block);
+  }
+  /* :global() — the cards are child components, so this scope cannot
+     reach them (Astro scopes styles to the component that renders them) */
+  .grid > :global(:first-child) {
+    grid-column: span 8;
+  }
+  .grid > :global(:not(:first-child)) {
+    grid-column: span 4;
+  }
+  .grid > :global(:first-child) :global(h2) {
+    font-size: var(--display-2);
+    line-height: 1.1;
+  }
+  @media (max-width: 52rem) {
+    /* 12 tracks + 3rem gaps cannot fit a phone — drop to one column */
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .grid > :global(:first-child),
+    .grid > :global(:not(:first-child)) {
+      grid-column: auto;
+    }
   }
   .hero h1 {
     font-size: clamp(3rem, 10vw, 6rem);

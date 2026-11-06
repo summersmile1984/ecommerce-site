@@ -11,6 +11,7 @@
     "check": "astro check",
     "test": "vitest run",
     "seo-check": "node scripts/seo-check.mjs",
+    "visual-check": "ego-browser nodejs < scripts/visual-check.mjs",
     "new-backend": "node scripts/init-backend.mjs"
   },
   "dependencies": {
