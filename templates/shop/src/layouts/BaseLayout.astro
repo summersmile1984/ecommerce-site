@@ -61,8 +61,16 @@ const pairs: Alternate[] = site.locales.map(
     <meta property="og:locale" content={locale === "en" ? "en_US" : "zh_CN"} />
     <meta name="twitter:card" content="summary" />
     <script is:inline>
-      const stored = localStorage.getItem("theme");
-      const sys = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      // storage can be blocked (private mode / policy) — never let that throw
+      // before the theme is set, or the site renders light on a dark OS.
+      let stored = null;
+      let sys = "light";
+      try {
+        stored = localStorage.getItem("theme");
+      } catch (e) {}
+      try {
+        sys = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      } catch (e) {}
       document.documentElement.dataset.theme = stored ?? sys;
     </script>
     {jsonLd.map((obj) => <script type="application/ld+json" set:html={JSON.stringify(obj)} />)}
