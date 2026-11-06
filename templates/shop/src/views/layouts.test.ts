@@ -12,7 +12,7 @@ describe("bold-minimal views", () => {
 
   it("product page splits image 55/45 and uses a full-width buy button", () => {
     const s = read("./ProductView.astro");
-    expect(s).toContain("grid-template-columns: 1.1fr 0.9fr");
+    expect(s).toContain("grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr)");
     expect(s).toContain("width: 100%");
   });
 
