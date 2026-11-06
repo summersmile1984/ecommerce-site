@@ -25,7 +25,8 @@ const { locale, cart, mode, error } = Astro.props;
     <div class="grid">
       <section>
         <h2>{t("cart.title", locale)}</h2>
-        <table>
+        <div class="table-scroll">
+          <table>
           <tbody>
             {cart.items.map((i) => (
               <tr>
@@ -41,6 +42,7 @@ const { locale, cart, mode, error } = Astro.props;
             </tr>
           </tfoot>
         </table>
+        </div>
         <p class="muted">{t("checkout.contact", locale)}: Stripe collects contact & address on the hosted page.</p>
       </section>
       <aside>
@@ -85,6 +87,14 @@ const { locale, cart, mode, error } = Astro.props;
   table {
     width: 100%;
     border-collapse: collapse;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+  @media (max-width: 30rem) {
+    td {
+      padding: 0.35rem 0.2rem;
+    }
   }
   td {
     padding: 0.5rem 0.3rem;

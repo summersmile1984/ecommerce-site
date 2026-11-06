@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { posterFor } from "./poster";
+import { posterFor, imageUrl } from "./poster";
 
 /** WCAG relative-luminance contrast ratio. */
 function contrast(a: string, b: string): number {
@@ -31,5 +31,30 @@ describe("posterFor", () => {
 
   it("treats a missing type as neutral", () => {
     expect(posterFor(undefined, "—").bg).toBe("#ece8e1");
+  });
+
+  it("never inherits Object.prototype members for unknown type names", () => {
+    for (const type of ["constructor", "toString", "hasOwnProperty", "__proto__"]) {
+      const p = posterFor(type, "X");
+      expect(p.bg).toBe("#ece8e1");
+      expect(p.ink).toBe("#22201c");
+      expect(p.texture).toBe("grid");
+    }
+  });
+});
+
+describe("imageUrl", () => {
+  it("returns a usable URL only", () => {
+    expect(imageUrl({ url: "https://cdn/x.jpg" })).toBe("https://cdn/x.jpg");
+    expect(imageUrl("https://cdn/y.jpg")).toBe("https://cdn/y.jpg");
+  });
+  it("rejects shapes that would render a broken image", () => {
+    expect(imageUrl(undefined)).toBeNull();
+    expect(imageUrl(null)).toBeNull();
+    expect(imageUrl({})).toBeNull();
+    expect(imageUrl({ url: "" })).toBeNull();
+    expect(imageUrl({ url: null })).toBeNull();
+    expect(imageUrl({ url: 42 })).toBeNull();
+    expect(imageUrl("")).toBeNull();
   });
 });

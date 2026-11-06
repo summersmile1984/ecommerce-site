@@ -2,7 +2,7 @@
 import { priceOf, type Product } from "../lib/emdash";
 import { localizePath } from "../i18n/routing";
 import { productTypeLabel } from "../i18n/ui";
-import { posterFor } from "../lib/poster";
+import { posterFor, imageUrl } from "../lib/poster";
 import type { Locale } from "../config/site";
 import Price from "./Price.astro";
 
@@ -18,17 +18,19 @@ const out = product.data.stock_status === "outofstock";
 const zh = product.locale !== locale; // untranslated product served via fallback
 const kind = product.data.type ?? "simple";
 // Real image when the backend has one; otherwise a generated poster field.
-const image = product.data.featured_image as { url?: string; alt?: string } | null | undefined;
+const imageSrc = imageUrl(product.data.featured_image);
+const imageAlt =
+  (product.data.featured_image as { alt?: string } | null | undefined)?.alt ?? product.data.title;
 const poster = posterFor(kind, productTypeLabel(kind, locale));
 ---
 <article class="card">
   {
-    image?.url ? (
+    imageSrc ? (
       <a class="art" href={href} aria-hidden="true" tabindex="-1">
         <img
           class="art-img"
-          src={image.url}
-          alt={image.alt ?? product.data.title}
+          src={imageSrc}
+          alt={imageAlt}
           loading="lazy"
           decoding="async"
         />
@@ -65,7 +67,7 @@ const poster = posterFor(kind, productTypeLabel(kind, locale));
   .art {
     display: block;
     aspect-ratio: 1 / 1;
-    background: var(--surface, #efe9e0);
+    background: #efe9e0;
     border-bottom: var(--rule);
     overflow: hidden;
     text-decoration: none;
@@ -94,7 +96,6 @@ const poster = posterFor(kind, productTypeLabel(kind, locale));
   .poster-label {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: var(--display-3);
     /* scale the label to the tile so long type names never clip */
     font-size: clamp(0.9rem, 9cqi, var(--display-3));
     letter-spacing: -0.03em;
@@ -102,6 +103,8 @@ const poster = posterFor(kind, productTypeLabel(kind, locale));
     padding: 0 var(--space-3);
     text-align: center;
     text-decoration: none;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
   .info {
     padding: var(--space-3) 0 0;
@@ -141,6 +144,9 @@ const poster = posterFor(kind, productTypeLabel(kind, locale));
     background: var(--muted);
   }
   .kind {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
   .fallback {

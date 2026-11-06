@@ -21,6 +21,22 @@ const PAIRS: Record<string, { bg: string; ink: string; texture: Poster["texture"
 const NEUTRAL = { bg: "#ece8e1", ink: "#22201c", texture: "grid" } as const;
 
 export function posterFor(type: string | undefined, label: string): Poster {
-  const pair = (type && PAIRS[type]) || NEUTRAL;
+  // Own-property check: a plain lookup would inherit Object.prototype members
+  // ("constructor", "toString", …) and yield undefined colours.
+  const pair = type && Object.hasOwn(PAIRS, type) ? PAIRS[type] : NEUTRAL;
   return { bg: pair.bg, ink: pair.ink, label, texture: pair.texture };
+}
+
+/**
+ * Usable image URL from a backend media reference. Anything that would
+ * render a broken <img> (missing, empty, or non-string url) returns null so
+ * the caller falls back to the poster instead of shipping a broken box.
+ */
+export function imageUrl(image: unknown): string | null {
+  if (typeof image === "string") return image.trim() ? image.trim() : null;
+  if (image && typeof image === "object") {
+    const url = (image as { url?: unknown }).url;
+    if (typeof url === "string" && url.trim()) return url.trim();
+  }
+  return null;
 }

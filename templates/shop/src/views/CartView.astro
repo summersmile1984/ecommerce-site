@@ -41,7 +41,8 @@ const hasAddress = !!cart?.shippingAddress;
       </>
     ) : (
       <div class="grid">
-        <table>
+        <div class="table-scroll">
+          <table>
           <thead>
             <tr>
               <th>{t("nav.shop", locale)}</th>
@@ -104,6 +105,7 @@ const hasAddress = !!cart?.shippingAddress;
             </tr>
           </tfoot>
         </table>
+        </div>
 
         <aside class="side">
           <form method="post" action="/api/cart/coupon" class="panel">
@@ -191,6 +193,15 @@ const hasAddress = !!cart?.shippingAddress;
   table {
     width: 100%;
     border-collapse: collapse;
+  }
+  .table-scroll {
+    overflow-x: auto;
+  }
+  @media (max-width: 30rem) {
+    th,
+    td {
+      padding: 0.4rem 0.25rem;
+    }
   }
   th,
   td {

@@ -61,11 +61,6 @@ h3 {
   color: var(--muted);
   margin: 0;
 }
-.rule {
-  border: 0;
-  border-top: var(--rule);
-  margin: 0;
-}
 img {
   max-width: 100%;
   height: auto;

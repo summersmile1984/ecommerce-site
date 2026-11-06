@@ -24,19 +24,19 @@ const stockLabel = out
 <form class="buy" method="post" action="/api/cart/items">
   <input type="hidden" name="productId" value={product.id} />
   {returnTo && <input type="hidden" name="returnTo" value={returnTo} />}
+  <p class="price tabular">
+    {formatMoney(price?.amount ?? null, price?.currency ?? currency)}
+  </p>
+  <p class:list={["stock", out && "out"]}>
+    <span class="dot"></span> {stockLabel}
+  </p>
   <div class="row">
     <label class="qty">
       {t("cart.quantity", locale)}
       <input type="number" name="quantity" value="1" min="1" max={qty ?? 99} />
     </label>
-    <button type="submit" disabled={out}>{out ? t("pdp.outOfStock", locale) : t("pdp.add", locale)}</button>
   </div>
-  <p class:list={["stock", out && "out"]}>
-    <span class="dot"></span> {stockLabel}
-  </p>
-  <p class="price tabular">
-    {formatMoney(price?.amount ?? null, price?.currency ?? currency)}
-  </p>
+  <button type="submit" disabled={out}>{out ? t("pdp.outOfStock", locale) : t("pdp.add", locale)}</button>
 </form>
 <style>
   .buy {
@@ -48,6 +48,9 @@ const stockLabel = out
     display: flex;
     gap: var(--space-3);
     align-items: end;
+  }
+  .row .qty {
+    max-width: 8rem;
   }
   .qty {
     display: grid;

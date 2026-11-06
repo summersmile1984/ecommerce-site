@@ -133,9 +133,8 @@ const hrefFor = (n: number): string => {
     border-bottom: var(--rule);
     min-width: 12rem;
   }
-  .search input:focus {
+  .search input:focus-visible {
     border-color: var(--accent);
-    outline: none;
   }
   .search button {
     background: none;
@@ -160,7 +159,7 @@ const hrefFor = (n: number): string => {
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: var(--space-4);
   }
   .pager {

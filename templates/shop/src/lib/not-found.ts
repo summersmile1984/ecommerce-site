@@ -11,22 +11,30 @@ export function notFoundResponse(): Response {
 :root {
   color-scheme: light dark;
   /* mirrors src/styles/tokens.css so this inline shell matches the site */
-  --paper: #faf7f2;
-  --ink: #1a1714;
-  --accent: #c8442a;
-  --muted: #6e6559;
-  --hairline: #e2dcd2;
+  --paper: #faf9f6;
+  --ink: #0c0b09;
+  --accent: #d0341c;
+  --muted: #6f685f;
+  --hairline: #e6e2d9;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #171411;
-    --ink: #f0ebe3;
-    --muted: #9b9184;
-    --hairline: #35302a;
+  :root:not([data-theme="light"]) {
+    --paper: #0b0b0a;
+    --ink: #f6f4ef;
+    --accent: #ff5a3c;
+    --muted: #9c968c;
+    --hairline: #2b2a27;
   }
 }
+:root[data-theme="dark"] {
+  --paper: #0b0b0a;
+  --ink: #f6f4ef;
+  --accent: #ff5a3c;
+  --muted: #9c968c;
+  --hairline: #2b2a27;
+}
 body {
-  font: 16px/1.6 ui-sans-serif, system-ui, sans-serif;
+  font: 16px/1.6 "Archivo Variable", system-ui, sans-serif;
   background: var(--paper);
   color: var(--ink);
   margin: 0;
@@ -40,7 +48,9 @@ body {
 h1 {
   font-size: clamp(2.5rem, 8vw, 5rem);
   margin: 0 0 1rem;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Fraunces Variable", Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  line-height: 1.05;
 }
 p {
   color: var(--muted);
@@ -60,6 +70,11 @@ a {
   <section data-lang="zh"><h1>页面不存在</h1><p><a href="/zh">返回首页</a></p></section>
 </div>
 <script>
+  // mirror the site's explicit theme choice (ThemeToggle stores "theme")
+  try {
+    const stored = localStorage.getItem("theme");
+    if (stored) document.documentElement.dataset.theme = stored;
+  } catch (e) {}
   const zh = location.pathname.startsWith("/zh");
   document.querySelectorAll("[data-nf] section").forEach((s) => {
     s.classList.toggle("on", s.getAttribute("data-lang") === (zh ? "zh" : "en"));

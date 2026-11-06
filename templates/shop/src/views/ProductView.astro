@@ -7,7 +7,7 @@ import { forwardJson, CART_BASE } from "../lib/relay";
 import { canonicalUrl, jsonLdProduct, jsonLdBreadcrumb } from "../lib/seo";
 import { t, productTypeLabel } from "../i18n/ui";
 import { localizePath } from "../i18n/routing";
-import { posterFor } from "../lib/poster";
+import { posterFor, imageUrl } from "../lib/poster";
 import type { Locale } from "../config/site";
 import type { Product } from "../lib/emdash";
 
@@ -23,7 +23,9 @@ const url = canonicalUrl(Astro.site!.toString(), path);
 // Real image when the backend has one, else the same poster field as the cards.
 const kind = product.data.type ?? "simple";
 const poster = posterFor(kind, productTypeLabel(kind, locale));
-const productImage = product.data.featured_image as { url?: string; alt?: string } | null | undefined;
+const imageSrc = imageUrl(product.data.featured_image);
+const imageAlt =
+  (product.data.featured_image as { alt?: string } | null | undefined)?.alt ?? product.data.title;
 
 // description: plain string or portable-text array
 const rawDesc = product.data.description;
@@ -97,12 +99,12 @@ const crumbs = [
     </nav>
     <div class="cols">
       {
-        productImage ? (
+        imageSrc ? (
           <div class="art" aria-hidden="true">
             <img
               class="art-img"
-              src={productImage.url}
-              alt={productImage.alt ?? product.data.title}
+              src={imageSrc}
+              alt={imageAlt}
               loading="lazy"
               decoding="async"
             />
@@ -110,6 +112,7 @@ const crumbs = [
         ) : (
           <div
             class="art poster"
+            data-texture={poster.texture}
             aria-hidden="true"
             style={`--poster-bg:${poster.bg};--poster-ink:${poster.ink}`}
           >
@@ -118,6 +121,7 @@ const crumbs = [
         )
       }
       <div class="info">
+        <p class="eyebrow">{poster.label}</p>
         <h1>{product.data.title}</h1>
         <AddToCartForm {product} {locale} {currency} returnTo={path} />
         {description && (
@@ -198,8 +202,15 @@ const crumbs = [
     display: grid;
     place-items: center;
     color: var(--poster-ink, #241f1a);
+    container-type: inline-size;
+  }
+  .art.poster[data-texture="grid"] {
     background-image: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px),
       repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 28px);
+  }
+  .art.poster[data-texture="grain"] {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 6px 6px;
   }
   .art.poster .poster-label {
     font-family: var(--font-display);
