@@ -41,6 +41,15 @@ npm run dev                                           # http://localhost:4322
 - **端口约定**：后端4325 · 前端4322 · preview4323
 - **表单 POST 校验**：Astro `checkOrigin` 默认开启——浏览器表单自动携带 `Origin`，非浏览器客户端（curl/脚本）调 `POST /api/*` 必须带同源 `Origin` 头，否则403 “Cross-site POST form submissions are forbidden”
 
+## 设计（Bold Minimal）
+
+- **巨字排版**：`--display-1` = `clamp(3rem,10vw,12rem)`，Archivo Variable 900、`letter-spacing -0.05em`；≤30rem 降级到 `clamp(2.5rem,14vw,4rem)`
+- **硬边界**：`--radius: 0`，只用 1px `--rule` 分隔，无阴影、无位移式 hover
+- **商品图**：有 `featured_image` 用图；无图走**海报占位**（按 type 生成色对 + 巨字类型名 + 细纹理，`src/lib/poster.ts`，标签按容器宽度缩放不裁切）
+- **不对称网格**：首页 Featured 首卡跨 2 列（≤52rem 2 列、≤30rem 1 列）；列表页工具条 sticky 一行
+- **暗色是独立一套值**（`--paper #0b0b0a`），不是滤镜反相
+- **视觉门禁**：`npm run visual-check` 断言 360/768/1280 六页无横向溢出（需 ego-browser CLI）
+
 ## Cache & auto-purge on save
 
 前端 SSR 页面缓存（`src/middleware.ts` + `src/lib/cache-store.ts`）：仅 GET/HTML/无 Set-Cookie，**永不缓存** `/cart` `/checkout` `/thank-you` `/orders`；`Symbol.for` 单例（dev 下 middleware 与端点共享同一 store）。
