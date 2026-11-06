@@ -186,6 +186,7 @@ const crumbs = [
     border: 0;
     overflow: hidden;
     background: var(--poster-bg, #efe9e0);
+    container-type: inline-size;
   }
   .art-img {
     display: block;
@@ -204,6 +205,7 @@ const crumbs = [
     font-family: var(--font-display);
     font-weight: 900;
     font-size: var(--display-3);
+    font-size: clamp(1rem, 9cqi, var(--display-3));
     letter-spacing: -0.03em;
     text-transform: uppercase;
     text-align: center;
