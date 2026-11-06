@@ -1,12 +1,23 @@
 /**
  * Viewport + layout gate for the blog: every page must fit 360 / 768 / 1280
- * with NO horizontal scroll, in BOTH themes. Run: npm run visual-check
+ * with NO horizontal scroll, in BOTH themes — and the article layout must
+ * actually behave (drop cap on English, TOC beside the body on wide screens,
+ * TOC below the body on phones).
+ *
+ * Run: npm run visual-check  (browser script → `ego-browser nodejs`)
  */
 import { mkdirSync } from "node:fs";
 
 const BASE = process.env.VISUAL_BASE ?? "http://localhost:4330";
 const SHOTS = process.env.VISUAL_SHOTS ?? "/tmp/resp-check";
-const PAGES = ["/", "/blog", "/zh", "/zh/blog"];
+const PAGES = [
+  "/",
+  "/blog",
+  "/blog/the-gifting-guide-for-people-who-dont-do-gifts",
+  "/zh",
+  "/zh/blog",
+  "/zh/blog/how-to-pick-a-subscription-box-zh",
+];
 const WIDTHS = [360, 768, 1280];
 const THEMES = ["light", "dark"];
 
@@ -38,24 +49,39 @@ for (const theme of THEMES) {
       await page.goto(BASE + path);
       const m = await page.evaluate(() => {
         const doc = document.documentElement;
-        const label = document.querySelector(".idx");
+        const p = document.querySelector(".post-body p");
+        const toc = document.querySelector(".toc");
         const body = document.querySelector(".post-body");
-        const layout = document.querySelector(".post-layout");
+        const firstLetter = p ? parseFloat(getComputedStyle(p, "::first-letter").fontSize) : null;
+        const bodyFont = p ? parseFloat(getComputedStyle(p).fontSize) : null;
         return {
           scroll: doc.scrollWidth,
           client: doc.clientWidth,
-          idxWidth: label?.getBoundingClientRect().width ?? 0,
-          bodyWidth: body?.getBoundingClientRect().width ?? 0,
-          layoutWidth: layout?.getBoundingClientRect().width ?? 0,
+          dropCapRatio:
+            firstLetter && bodyFont ? firstLetter / bodyFont : null,
+          tocTop: toc ? Math.round(toc.getBoundingClientRect().top) : null,
+          bodyTop: body ? Math.round(body.getBoundingClientRect().top) : null,
         };
       });
+      const where = `${path}@${width}/${theme}`;
       if (m.scroll > m.client + 1) {
-        failures.push(`${path}@${width}/${theme} overflow scroll=${m.scroll} client=${m.client}`);
+        failures.push(`${where} overflow scroll=${m.scroll} client=${m.client}`);
       }
-      if (m.bodyWidth > 0 && m.layoutWidth > 0 && m.bodyWidth > m.layoutWidth + 1) {
-        failures.push(
-          `${path}@${width}/${theme} article body wider than its grid (${Math.round(m.bodyWidth)} of ${Math.round(m.layoutWidth)})`,
-        );
+      // English articles must show the drop cap; Chinese must not.
+      if (!path.startsWith("/zh") && m.dropCapRatio !== null && m.dropCapRatio < 2) {
+        failures.push(`${where} drop cap not applied (ratio ${m.dropCapRatio.toFixed(2)})`);
+      }
+      if (path.startsWith("/zh") && m.dropCapRatio !== null && m.dropCapRatio > 1.5) {
+        failures.push(`${where} drop cap applied to Chinese (ratio ${m.dropCapRatio.toFixed(2)})`);
+      }
+      // Wide screens: the TOC sits beside the body (same row). Phones: below it.
+      if (m.tocTop !== null && m.bodyTop !== null) {
+        if (width >= 832 && Math.abs(m.tocTop - m.bodyTop) > 4) {
+          failures.push(`${where} TOC not level with the article body (${m.tocTop} vs ${m.bodyTop})`);
+        }
+        if (width < 832 && m.tocTop < m.bodyTop) {
+          failures.push(`${where} TOC sits above the body on a phone (${m.tocTop} < ${m.bodyTop})`);
+        }
       }
       await page.screenshot({
         path: `${SHOTS}/blog-${theme}-${width}${path.replace(/\//g, "_")}.png`,
@@ -70,5 +96,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 console.log(
-  `visual-check PASSED (${PAGES.length} pages × ${WIDTHS.length} widths × ${THEMES.length} themes, no overflow)`,
+  `visual-check PASSED (${PAGES.length} pages × ${WIDTHS.length} widths × ${THEMES.length} themes: no overflow, drop cap on en only, TOC beside the body on wide screens and below it on phones)`,
 );

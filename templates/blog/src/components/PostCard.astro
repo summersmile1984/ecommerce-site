@@ -35,15 +35,6 @@ const zh = post.locale !== locale; // 回退标记
   .row-body {
     min-width: 0;
   }
-  @media (max-width: 52rem) {
-    .row {
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-    .idx {
-      font-size: 1.4rem;
-    }
-  }
   .idx {
     font-family: var(--font-display);
     font-weight: 600;
@@ -51,6 +42,16 @@ const zh = post.locale !== locale; // 回退标记
     font-size: 2.2rem;
     line-height: 1;
     padding-top: 0.15rem;
+  }
+  @media (max-width: 52rem) {
+    .row {
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    /* after the base rule, otherwise the later base wins */
+    .idx {
+      font-size: 1.4rem;
+    }
   }
   .row h2 {
     margin: 0 0 var(--space-1);

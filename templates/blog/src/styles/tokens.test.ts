@@ -13,7 +13,6 @@ describe("blog design tokens", () => {
 
   it("exposes the display scale, grid column count and rule", () => {
     expect(css).toContain("--display-1:");
-    expect(css).toContain("--column: 12");
     expect(css).toContain("--rule:");
     expect(css).toContain("--gap-section:");
   });

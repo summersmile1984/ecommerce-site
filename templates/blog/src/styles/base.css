@@ -54,6 +54,13 @@ h3 {
   line-height: 1.2;
   margin: 0;
 }
+/* Wide tracking inserts gaps between Han glyphs — neutralise for zh */
+:lang(zh) .eyebrow,
+:lang(zh) .meta,
+:lang(zh) .site-footer,
+:lang(zh) figcaption {
+  letter-spacing: normal;
+}
 .eyebrow {
   font-size: 0.75rem;
   letter-spacing: 0.16em;
