@@ -75,19 +75,22 @@ const shelf = featured.length > 0 ? featured : products.slice(0, 4);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--gap-block);
   }
-  .grid > :first-child {
+  /* :global() — the cards are a child component, this scope cannot reach it */
+  .grid > :global(:first-child) {
     grid-column: span 2;
   }
   @media (max-width: 52rem) {
     .grid {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--gap-block) var(--space-4);
     }
   }
   @media (max-width: 30rem) {
     .grid {
       grid-template-columns: 1fr;
+      gap: var(--gap-block);
     }
-    .grid > :first-child {
+    .grid > :global(:first-child) {
       grid-column: span 1;
     }
   }
